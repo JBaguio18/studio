@@ -42,60 +42,62 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm border-primary/20 shadow-lg shadow-primary/10">
-      <CardHeader className="text-center">
-        <Logo className="mx-auto mb-4"/>
-        <CardTitle>Welcome Back</CardTitle>
-        <CardDescription>Sign in to your PLXYGROUND account</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Password</FormLabel>
-                    <Link href="#" className="text-sm font-medium text-primary hover:underline">
-                        Forgot Password?
-                    </Link>
-                  </div>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Sign In
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link href="/signup" className="font-medium text-primary hover:underline">
-                Sign Up
-            </Link>
-        </p>
-      </CardFooter>
-    </Card>
+    <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center p-4">
+      <Card className="w-full max-w-sm border-primary/20 shadow-lg shadow-primary/10">
+        <CardHeader className="text-center">
+          <Logo className="mx-auto mb-4"/>
+          <CardTitle>Welcome Back</CardTitle>
+          <CardDescription>Sign in to your PLXYGROUND account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="name@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Password</FormLabel>
+                      <Link href="#" className="text-sm font-medium text-primary hover:underline">
+                          Forgot Password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Sign In
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link href="/signup" className="font-medium text-primary hover:underline">
+                  Sign Up
+              </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
