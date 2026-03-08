@@ -31,13 +31,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-background font-body antialiased',
+          'min-h-screen bg-muted font-body antialiased',
           inter.variable,
           oswald.variable
         )}
       >
         <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
+          <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background shadow-2xl">
             <SiteHeader />
             <main className="flex-1">{children}</main>
           </div>
