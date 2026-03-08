@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
-import { User, Building, Heart } from "lucide-react";
+import { User, Building } from "lucide-react";
 import Link from "next/link";
 import { MotionDiv } from "@/components/motion-div";
 
@@ -20,8 +20,8 @@ export default function SignupChoicePage() {
               <div className="flex w-full items-center gap-4">
                 <User className="h-6 w-6"/>
                 <div className="text-left">
-                  <p className="font-semibold">I'm a Creator</p>
-                  <p className="text-sm font-normal text-primary-foreground/80">Share content and build your community.</p>
+                  <p className="font-semibold">I'm a Creator / Athlete</p>
+                  <p className="text-sm font-normal text-primary-foreground/80">Share your journey and connect with your audience.</p>
                 </div>
               </div>
             </Link>
@@ -33,21 +33,8 @@ export default function SignupChoicePage() {
               <div className="flex w-full items-center gap-4">
                 <Building className="h-6 w-6"/>
                 <div className="text-left">
-                  <p className="font-semibold">I'm a Business</p>
-                  <p className="text-sm font-normal text-secondary-foreground/80">Promote your brand and partner with creators.</p>
-                </div>
-              </div>
-            </Link>
-          </Button>
-        </MotionDiv>
-        <MotionDiv whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-          <Button asChild size="lg" variant="secondary" className="h-auto w-full py-4">
-            <Link href="/signup/fan">
-              <div className="flex w-full items-center gap-4">
-                <Heart className="h-6 w-6"/>
-                <div className="text-left">
-                  <p className="font-semibold">I'm a Fan</p>
-                  <p className="text-sm font-normal text-secondary-foreground/80">Follow creators and discover content.</p>
+                  <p className="font-semibold">I'm a Business / Admin / Coach</p>
+                  <p className="text-sm font-normal text-secondary-foreground/80">Manage your brand, team, or business.</p>
                 </div>
               </div>
             </Link>
