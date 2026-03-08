@@ -4,6 +4,18 @@ import { Toaster } from '@/components/ui/toaster';
 import { SiteHeader } from '@/components/site-header';
 import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { Inter, Oswald } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const oswald = Oswald({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-oswald',
+});
 
 export const metadata: Metadata = {
   title: 'PLXYGROUND',
@@ -19,7 +31,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'min-h-screen bg-background font-body antialiased',
+          inter.variable,
+          oswald.variable
         )}
       >
         <FirebaseClientProvider>
