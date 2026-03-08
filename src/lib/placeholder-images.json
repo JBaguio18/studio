@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "post-image-1",
+      "description": "Basketball player dunking",
+      "imageUrl": "https://picsum.photos/seed/101/1200/800",
+      "imageHint": "basketball dunk"
+    },
+    {
+      "id": "post-image-2",
+      "description": "Soccer player celebrating a goal",
+      "imageUrl": "https://picsum.photos/seed/102/1200/800",
+      "imageHint": "soccer goal"
+    },
+    {
+      "id": "post-image-3",
+      "description": "Tennis player serving",
+      "imageUrl": "https://picsum.photos/seed/103/1200/800",
+      "imageHint": "tennis serve"
+    },
+    {
+      "id": "post-image-4",
+      "description": "American football quarterback throwing a pass",
+      "imageUrl": "https://picsum.photos/seed/104/1200/800",
+      "imageHint": "american football"
+    },
+    {
+      "id": "post-image-5",
+      "description": "Runner crossing a finish line",
+      "imageUrl": "https://picsum.photos/seed/105/1200/800",
+      "imageHint": "marathon running"
+    },
+    {
+      "id": "post-image-6",
+      "description": "Baseball player hitting a home run",
+      "imageUrl": "https://picsum.photos/seed/106/1200/800",
+      "imageHint": "baseball game"
+    }
+  ]
 }
