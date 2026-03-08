@@ -37,7 +37,7 @@ export default function RootLayout({
         )}
       >
         <FirebaseClientProvider>
-          <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background shadow-2xl">
+          <div className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background shadow-2xl">
             <SiteHeader />
             <main className="flex-1">{children}</main>
           </div>

@@ -21,7 +21,7 @@ export default async function ClipsPage() {
       </div>
 
       <div
-        className="mt-8 grid grid-cols-2 gap-4"
+        className="mt-8 grid grid-cols-2 gap-5"
       >
         {posts.map((post) => (
           <ContentCard key={post.id} post={post} />
