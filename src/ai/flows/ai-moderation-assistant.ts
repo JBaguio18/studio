@@ -27,27 +27,6 @@ export async function aiModerationAssistant(input: AiModerationAssistantInput): 
   return aiModerationAssistantFlow(input);
 }
 
-const moderationPrompt = ai.definePrompt({
-  name: 'moderationAssistantPrompt',
-  input: {schema: AiModerationAssistantInputSchema},
-  output: {schema: AiModerationAssistantOutputSchema},
-  prompt: `You are an AI assistant designed to help Super Admins efficiently moderate content on the PLXYGROUND platform. Your task is to analyze flagged content and associated user reports, then provide a summary and suggest initial moderation actions.
-
-Flagged Content:
-{{{flaggedContent}}}
-
-User Reports:
-{{#each userReports}}
-- {{{this}}}
-{{else}}
-No specific user reports provided for this content.
-{{/each}}
-
-Based on the above, please provide:
-1. A concise summary of the flagged content and the concerns raised by user reports.
-2. A list of suggested initial moderation actions. Consider common moderation practices such as reviewing content, suspending users, issuing warnings, or escalating to a human moderator.`,
-});
-
 const aiModerationAssistantFlow = ai.defineFlow(
   {
     name: 'aiModerationAssistantFlow',
@@ -55,7 +34,25 @@ const aiModerationAssistantFlow = ai.defineFlow(
     outputSchema: AiModerationAssistantOutputSchema,
   },
   async input => {
-    const {output} = await moderationPrompt(input);
+    const userReports =
+      input.userReports.length > 0
+        ? input.userReports.map(report => `- ${report}`).join('\n')
+        : 'No specific user reports provided for this content.';
+        
+    const {output} = await ai.generate({
+      prompt: `You are an AI assistant designed to help Super Admins efficiently moderate content on the PLXYGROUND platform. Your task is to analyze flagged content and associated user reports, then provide a summary and suggest initial moderation actions.
+
+Flagged Content:
+${input.flaggedContent}
+
+User Reports:
+${userReports}
+
+Based on the above, please provide:
+1. A concise summary of the flagged content and the concerns raised by user reports.
+2. A list of suggested initial moderation actions. Consider common moderation practices such as reviewing content, suspending users, issuing warnings, or escalating to a human moderator.`,
+      output: {schema: AiModerationAssistantOutputSchema},
+    });
     return output!;
   }
 );

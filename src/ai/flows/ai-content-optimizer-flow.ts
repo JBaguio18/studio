@@ -36,21 +36,6 @@ export async function aiContentOptimizer(
   return aiContentOptimizerFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'aiContentOptimizerPrompt',
-  input: {schema: AiContentOptimizerInputSchema},
-  output: {schema: AiContentOptimizerOutputSchema},
-  prompt: `You are an expert content optimizer for sports creator content on the PLXYGROUND platform.
-Your goal is to make content more discoverable and engaging for fans.
-
-Analyze the provided original title and description and suggest an optimized version for both.
-Focus on clarity, keywords, and hooks that would attract a sports audience.
-Keep the suggestions concise and impactful.
-
-Original Title: {{{originalTitle}}}
-Original Description: {{{originalDescription}}}`,
-});
-
 const aiContentOptimizerFlow = ai.defineFlow(
   {
     name: 'aiContentOptimizerFlow',
@@ -58,7 +43,18 @@ const aiContentOptimizerFlow = ai.defineFlow(
     outputSchema: AiContentOptimizerOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+      prompt: `You are an expert content optimizer for sports creator content on the PLXYGROUND platform.
+Your goal is to make content more discoverable and engaging for fans.
+
+Analyze the provided original title and description and suggest an optimized version for both.
+Focus on clarity, keywords, and hooks that would attract a sports audience.
+Keep the suggestions concise and impactful.
+
+Original Title: ${input.originalTitle}
+Original Description: ${input.originalDescription}`,
+      output: {schema: AiContentOptimizerOutputSchema},
+    });
     return output!;
   }
 );
