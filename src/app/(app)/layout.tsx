@@ -44,6 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [isUserLoading, user, router]);
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/');
   };
@@ -70,7 +71,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarContent>
           <SidebarHeader>
-            <Logo />
+            <Logo className="text-sidebar-primary" />
           </SidebarHeader>
           <SidebarMenu>
             {menuItems.map((item) => (
