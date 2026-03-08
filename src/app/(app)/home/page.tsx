@@ -12,7 +12,7 @@ export default async function HomePage() {
         subtitle="Latest content from creators you follow"
       />
       <div
-        className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3"
+        className="mx-auto mt-8 flex max-w-lg flex-col items-center gap-8"
       >
         {posts.map((post) => (
           <ContentCard key={post.id} post={post} />

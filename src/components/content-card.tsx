@@ -12,7 +12,7 @@ interface ContentCardProps {
 
 export function ContentCard({ post, className }: ContentCardProps) {
   return (
-      <Link href={`/content/${post.id}`} className="group block">
+      <Link href={`/content/${post.id}`} className="group block w-full">
         <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/30", className)}>
           {post.image_url && (
               <div className="overflow-hidden">
@@ -20,9 +20,9 @@ export function ContentCard({ post, className }: ContentCardProps) {
                         src={post.image_url}
                         alt={post.title}
                         width={600}
-                        height={400}
+                        height={750}
                         data-ai-hint={post.image_hint}
-                        className="aspect-[3/2] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
               </div>
           )}
