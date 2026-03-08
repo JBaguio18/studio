@@ -92,7 +92,7 @@ export default function BusinessSignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex h-full items-center justify-center p-4">
       <Card className="w-full max-w-sm border-primary/20 shadow-lg shadow-primary/10">
         <CardHeader className="text-center">
           <Logo className="mx-auto mb-4"/>
