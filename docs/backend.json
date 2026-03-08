@@ -1,0 +1,552 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user account within the PLXYGROUND platform, linking to specific role-based profiles. This entity manages core user information and status, assuming external handling of sensitive authentication data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, used for sign-in and communication.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The primary role of the user within the platform.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the user account (e.g., active, suspended, pending verification).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user account was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "role",
+        "status",
+        "createdAt"
+      ]
+    },
+    "CreatorProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CreatorProfile",
+      "type": "object",
+      "description": "Detailed profile information for users with the 'Creator' role, showcasing their public persona and content. (Relationship: User 1:1 CreatorProfile)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CreatorProfile entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the associated User account. (Relationship: User 1:1 CreatorProfile)"
+        },
+        "username": {
+          "type": "string",
+          "description": "A unique, user-friendly handle or slug for the creator's profile."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The public display name of the creator."
+        },
+        "headline": {
+          "type": "string",
+          "description": "A short, descriptive headline or title for the creator's profile."
+        },
+        "about": {
+          "type": "string",
+          "description": "A longer description or biography about the creator."
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "description": "URL to the creator's profile photo.",
+          "format": "uri"
+        },
+        "socialLinks": {
+          "type": "array",
+          "description": "An array of URLs to the creator's external social media or website links.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Indicates whether the creator's profile has been verified by an administrator."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the creator profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the creator profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "username",
+        "displayName",
+        "profilePhotoUrl",
+        "isVerified",
+        "createdAt"
+      ]
+    },
+    "BusinessProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BusinessProfile",
+      "type": "object",
+      "description": "Detailed profile information for users with the 'Business' role, representing a company or organization. (Relationship: User 1:1 BusinessProfile)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BusinessProfile entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the associated User account. (Relationship: User 1:1 BusinessProfile)"
+        },
+        "businessName": {
+          "type": "string",
+          "description": "The official name of the business or organization."
+        },
+        "username": {
+          "type": "string",
+          "description": "A unique, user-friendly handle or slug for the business's profile."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the business, its mission, or services."
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "description": "URL to the business's logo or profile image.",
+          "format": "uri"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "An email address for direct contact with the business.",
+          "format": "email"
+        },
+        "websiteUrl": {
+          "type": "string",
+          "description": "URL to the business's official website.",
+          "format": "uri"
+        },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Indicates whether the business's profile has been verified by an administrator."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the business profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the business profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "businessName",
+        "username",
+        "profilePhotoUrl",
+        "isVerified",
+        "createdAt"
+      ]
+    },
+    "FanProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FanProfile",
+      "type": "object",
+      "description": "Basic profile information for users with the 'Fan' role. (Relationship: User 1:1 FanProfile)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FanProfile entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the associated User account. (Relationship: User 1:1 FanProfile)"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The public display name of the fan."
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "description": "URL to the fan's profile photo.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the fan profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the fan profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "displayName",
+        "createdAt"
+      ]
+    },
+    "Content": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Content",
+      "type": "object",
+      "description": "Represents a piece of content (article, image, or video) created by a Creator or Business.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Content entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the content."
+        },
+        "body": {
+          "type": "string",
+          "description": "The main body or description of the content, can contain rich text or Markdown."
+        },
+        "contentType": {
+          "type": "string",
+          "description": "The type of content.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL to the primary media file (image, video) if applicable.",
+          "format": "uri"
+        },
+        "mediaThumbnailUrl": {
+          "type": "string",
+          "description": "URL to a thumbnail image for the media content.",
+          "format": "uri"
+        },
+        "creatorProfileId": {
+          "type": "string",
+          "description": "Reference to the CreatorProfile if the content was created by a Creator. (Relationship: CreatorProfile 1:N Content)"
+        },
+        "businessProfileId": {
+          "type": "string",
+          "description": "Reference to the BusinessProfile if the content was created by a Business. (Relationship: BusinessProfile 1:N Content)"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current publication status of the content (e.g., draft, pending moderation, published, unpublished, rejected).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishedAt": {
+          "type": "string",
+          "description": "Timestamp when the content was first published.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the content was initially created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the content was last updated.",
+          "format": "date-time"
+        },
+        "tagIds": {
+          "type": "array",
+          "description": "References to Tags associated with this content. (Relationship: Tag N:N Content)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "orderPriority": {
+          "type": "number",
+          "description": "A numerical value indicating the display priority or ordering of the content."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "body",
+        "contentType",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Tag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tag",
+      "type": "object",
+      "description": "Represents a category or keyword used to organize and filter content.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tag entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the tag (e.g., 'Football', 'Highlights')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the tag's purpose or scope."
+        },
+        "contentIds": {
+          "type": "array",
+          "description": "References to Content associated with this tag. (Relationship: Tag N:N Content)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents an alert or message sent to a specific user within the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Notification entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who is the recipient of this notification. (Relationship: User 1:N Notification)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of notification (e.g., 'content_approved', 'new_follower', 'account_suspended')."
+        },
+        "message": {
+          "type": "string",
+          "description": "The main text message of the notification."
+        },
+        "linkUrl": {
+          "type": "string",
+          "description": "An optional URL for deep-linking into the app when the notification is tapped.",
+          "format": "uri"
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates whether the user has marked the notification as read."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the notification was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "type",
+        "message",
+        "isRead",
+        "createdAt"
+      ]
+    },
+    "AuditEvent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditEvent",
+      "type": "object",
+      "description": "Records administrative actions performed by Super Admins, used for auditing and tracking changes to critical entities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AuditEvent entity."
+        },
+        "actorUserId": {
+          "type": "string",
+          "description": "Reference to the User (Super Admin) who performed the audited action. (Relationship: User 1:N AuditEvent)"
+        },
+        "actionType": {
+          "type": "string",
+          "description": "A description of the type of action performed (e.g., 'user_suspended', 'content_published', 'role_changed')."
+        },
+        "entityType": {
+          "type": "string",
+          "description": "The type of entity that was affected by the action (e.g., 'User', 'CreatorProfile', 'Content').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entityId": {
+          "type": "string",
+          "description": "The unique identifier of the entity that was affected by the action."
+        },
+        "description": {
+          "type": "string",
+          "description": "A more detailed, human-readable description of the audit event."
+        },
+        "details": {
+          "type": "string",
+          "description": "Optional, structured details about the change, such as old and new values, in JSON string format."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the audit event was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "actorUserId",
+        "actionType",
+        "entityType",
+        "entityId",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores core user account information. The `userId` matches `request.auth.uid`. Includes `role` and `status` fields for database-backed access control (DBAC) and explicit state management."
+        }
+      },
+      {
+        "path": "/creator_profiles/{creatorProfileId}",
+        "definition": {
+          "entityName": "CreatorProfile",
+          "schema": {
+            "$ref": "#/backend/entities/CreatorProfile"
+          },
+          "description": "Publicly accessible profiles for Creator role users. The `creatorProfileId` is denormalized to be the same as the user's UID for 1:1 mapping and direct lookup. Includes `userId` (for explicit authorization binding) and `isVerified`."
+        }
+      },
+      {
+        "path": "/business_profiles/{businessProfileId}",
+        "definition": {
+          "entityName": "BusinessProfile",
+          "schema": {
+            "$ref": "#/backend/entities/BusinessProfile"
+          },
+          "description": "Publicly accessible profiles for Business role users. The `businessProfileId` is denormalized to be the same as the user's UID for 1:1 mapping and direct lookup. Includes `userId` (for explicit authorization binding) and `isVerified`."
+        }
+      },
+      {
+        "path": "/fan_profiles/{fanProfileId}",
+        "definition": {
+          "entityName": "FanProfile",
+          "schema": {
+            "$ref": "#/backend/entities/FanProfile"
+          },
+          "description": "Private profiles for Fan role users. The `fanProfileId` is denormalized to be the same as the user's UID for 1:1 mapping and direct lookup. Includes `userId` for explicit path-based authorization."
+        }
+      },
+      {
+        "path": "/published_content/{contentId}",
+        "definition": {
+          "entityName": "Content",
+          "schema": {
+            "$ref": "#/backend/entities/Content"
+          },
+          "description": "Collection for content explicitly published and publicly visible. Documents in this collection *must* have a `status` of 'published'. Includes denormalized `ownerUserId`, `ownerProfileId`, `ownerDisplayName`, and `ownerProfilePhotoUrl` for authorization independence and efficient display without extra lookups."
+        }
+      },
+      {
+        "path": "/users/{userId}/my_content/{contentId}",
+        "definition": {
+          "entityName": "Content",
+          "schema": {
+            "$ref": "#/backend/entities/Content"
+          },
+          "description": "Subcollection storing all content (drafts, pending, published copies) owned by a specific user. Path-based authorization (`userId` from path matches `request.auth.uid`). Includes denormalized `ownerUserId` (matching the `userId` in the path), `ownerProfileId`, and `status` for explicit state and simplified rules."
+        }
+      },
+      {
+        "path": "/tags/{tagId}",
+        "definition": {
+          "entityName": "Tag",
+          "schema": {
+            "$ref": "#/backend/entities/Tag"
+          },
+          "description": "Global collection for content tags. Content documents reference tags via `tagIds` for an efficient N:N relationship without large arrays on the tag side."
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "Private, personalized notifications for each user. The `userId` in the path ensures path-based ownership and authorization. The `notification.userId` field is denormalized to match the path `userId`."
+        }
+      },
+      {
+        "path": "/audit_events/{eventId}",
+        "definition": {
+          "entityName": "AuditEvent",
+          "schema": {
+            "$ref": "#/backend/entities/AuditEvent"
+          },
+          "description": "Records administrative actions performed by Super Admins for auditing purposes. Access is restricted to users with the 'Super Admin' role. Includes `actorUserId` for explicit authorization."
+        }
+      },
+      {
+        "path": "/roles_super_admin/{superAdminId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A dedicated collection for storing the UIDs of users who possess the 'Super Admin' role. This allows for efficient and robust DBAC by simply checking for the existence of a document at `/roles_super_admin/$(request.auth.uid)` in security rules."
+        }
+      }
+    ],
+    "reasoning": "The proposed Firestore structure prioritizes **Authorization Independence** and **QAP (Query as Permission)** compliance by employing a dual-path strategy for content and path-based ownership for user-specific data. \n\n**Authorization Independence** is achieved through extensive denormalization. For instance, `Content` documents, whether in the public `/published_content` collection or the user-specific `/users/{userId}/my_content` subcollection, will contain direct authorization fields like `ownerUserId` (the Firebase Authentication UID of the content creator/business owner) and `ownerProfileId`. This eliminates the need for expensive and complex `get()` calls in security rules to check parent document ownership or profile status, allowing for atomic operations and simplified rule logic. Similarly, all profile types (Creator, Business, Fan) use the user's UID as their document ID, directly linking the profile to `request.auth.uid` without requiring additional lookups. Admin roles are managed via a dedicated top-level collection `/roles_super_admin/{superAdminId}` for efficient existence checks.\n\n**QAPs (Rules are not Filters)** are primarily addressed by **Structural Segregation**. Instead of a single `/content` collection that would require complex `list` query filters based on `status` or `ownerId` (violating QAP), content is separated into two distinct security postures:\n1.  **/published_content/{contentId}**: This top-level collection exclusively stores content that has a `status` of 'published'. Any user (authenticated or unauthenticated) can perform `list` operations on this collection, and rules simply enforce the `published` status invariant. This satisfies the QAP for public feeds and discovery.\n2.  **/users/{userId}/my_content/{contentId}**: This subcollection is for all content (drafts, pending, unpublished, and published copies) owned by a specific user. Access to this path is strictly controlled by `request.auth.uid == userId`, making `list` operations for 'My Content' secure and QAP-compliant. When a user publishes content from this subcollection, a Cloud Function mirrors or copies the necessary public fields to the `/published_content` collection. This ensures that users can list and manage their private content without exposing it to others unless explicitly published.\n\nUser profiles (`creator_profiles`, `business_profiles`, `fan_profiles`) are stored as top-level collections with the user's UID as the document ID, allowing for direct `get` access and secure listing (e.g., `creator_profiles` can be publicly listed, `fan_profiles` are restricted). User-specific data like `notifications` are housed in subcollections under `/users/{userId}/notifications/{notificationId}`, ensuring private, path-based ownership and QAP-compliant listing. Audit events are stored in a top-level collection `/audit_events` with strict Super Admin access rules based on `actorUserId` and the `/roles_super_admin` collection.\n\n**Explicit State Modeling** is leveraged for `User.status` and `Content.status` fields, providing clear, single points of truth for entity states, simplifying rule logic and application flow."
+  }
+}

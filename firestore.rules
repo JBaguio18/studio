@@ -1,0 +1,290 @@
+/**
+ * Core Philosophy:
+ * This ruleset enforces a security model based on strict ownership, role-based
+ * access control (RBAC), and structural segregation for public vs. private data.
+ * It prioritizes Authorization Independence, meaning that authorization decisions
+ * are made using denormalized data directly on the documents being secured,
+ * avoiding slow and costly cross-document lookups in rules.
+ *
+ * Data Structure:
+ * The structure separates private, user-specific data into subcollections under
+ * /users/{userId} (e.g., my_content, notifications). Publicly readable data
+ * like published content and creator profiles are stored in top-level collections
+ * (/published_content, /creator_profiles) to enable efficient, secure querying.
+ *
+ * Key Security Decisions:
+ * - Structural Segregation: Content is split into two collections: a public,
+ *   read-only `/published_content` collection for discovery, and a private
+ *   `/users/{userId}/my_content` subcollection for user-specific drafts and
+ *   management. This makes list queries secure and performant.
+ * - Denormalization for Authorization: Profile collections use the user's
+ *   authentication UID as the document ID for direct access. Content documents
+ *   contain a denormalized `ownerUserId` to link back to the owner without
+ *   requiring a `get()` call.
+ * - Super Admin Role: A dedicated `/roles_super_admin/{userId}` collection
+ *   provides a fast lookup mechanism (`exists()`) to grant special privileges
+ *   for sensitive collections like `/audit_events`.
+ * - User Listing Disabled: To protect user privacy and prevent data scraping,
+ *   listing the top-level `/users` collection is explicitly forbidden.
+ * - Self-Creation: Users are permitted to create their own user document and
+ *   associated profiles upon sign-up, enabling a smooth onboarding process.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //-------------------------------------------------------------------------//
+    // Helper Functions
+    //-------------------------------------------------------------------------//
+
+    /**
+     * isSignedIn
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * isOwner
+     * Checks if the authenticated user's UID matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * isExistingOwner
+     * Checks if a document exists and if the authenticated user is the owner.
+     * CRITICAL for all update and delete operations to prevent modifying
+     * non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * isSuperAdmin
+     * Checks if the user has the 'Super Admin' role by checking for the
+     * existence of their UID in the dedicated admin roles collection.
+     */
+    function isSuperAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_super_admin/$(request.auth.uid));
+    }
+
+    /**
+     * isUserIdConsistentOnCreate
+     * On create, validates that a `userId` field in the new document's data
+     * matches the owner's UID from the path. This enforces relational integrity.
+     */
+    function isUserIdConsistentOnCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * isUserIdImmutable
+     * On update, ensures the `userId` field linking a document to its owner
+     * cannot be changed. This prevents re-assigning ownership of a resource.
+     */
+    function isUserIdImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * isContentOwnerIdConsistentOnCreate
+     * On create, validates the denormalized `ownerUserId` matches the user's UID.
+     */
+    function isContentOwnerIdConsistentOnCreate(userId) {
+      return request.resource.data.ownerUserId == userId;
+    }
+
+    /**
+     * isContentOwnerIdImmutable
+     * On update, ensures the denormalized `ownerUserId` is not changed.
+     */
+    function isContentOwnerIdImmutable() {
+      return request.resource.data.ownerUserId == resource.data.ownerUserId;
+    }
+
+
+    //-------------------------------------------------------------------------//
+    // Collection Rules
+    //-------------------------------------------------------------------------//
+
+    /**
+     * @description Core user account data. Users can create, read, and update
+     *              their own user document but cannot see or list others.
+     * @path        /users/{userId}
+     * @allow       (create) A newly signed-up user with UID 'user123' creating their
+     *              own document at /users/user123.
+     * @deny        (get) User 'user123' trying to read /users/user456.
+     * @deny        (list) Any user trying to list all documents in /users.
+     * @principle   Enforces self-creation and strict data ownership.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Publicly visible profiles for creators. Anyone can view these
+     *              profiles, but only the owner can create, edit, or delete them.
+     * @path        /creator_profiles/{creatorProfileId}
+     * @allow       (get) Any anonymous user reading /creator_profiles/user123.
+     * @allow       (create) User 'user123' creating their profile document at
+     *              /creator_profiles/user123, with `userId: 'user123'` in the data.
+     * @deny        (update) User 'user456' trying to update the profile at
+     *              /creator_profiles/user123.
+     * @principle   Public Read with Owner-Only Writes. Validates relational
+     *              integrity via the `userId` field.
+     */
+    match /creator_profiles/{creatorProfileId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isOwner(creatorProfileId) && isUserIdConsistentOnCreate(creatorProfileId);
+      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    /**
+     * @description Publicly visible profiles for businesses. Same rules as creator
+     *              profiles: public read, owner-only writes.
+     * @path        /business_profiles/{businessProfileId}
+     * @allow       (get) Any anonymous user reading /business_profiles/user123.
+     * @allow       (create) User 'user123' creating their profile document at
+     *              /business_profiles/user123, with `userId: 'user123'` in the data.
+     * @deny        (update) User 'user456' trying to update the profile at
+     *              /business_profiles/user123.
+     * @principle   Public Read with Owner-Only Writes. Validates relational
+     *              integrity via the `userId` field.
+     */
+    match /business_profiles/{businessProfileId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isOwner(businessProfileId) && isUserIdConsistentOnCreate(businessProfileId);
+      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    /**
+     * @description Private profiles for fan users. Only the owner can read or write
+     *              their own profile. Listing is disabled.
+     * @path        /fan_profiles/{fanProfileId}
+     * @allow       (get) User 'user123' reading their own profile at /fan_profiles/user123.
+     * @deny        (get) User 'user456' trying to read /fan_profiles/user123.
+     * @deny        (list) Any user trying to list all fan profiles.
+     * @principle   Strict ownership for private data.
+     */
+    match /fan_profiles/{fanProfileId} {
+      allow get: if isOwner(fanProfileId);
+      allow list: if false;
+      allow create: if isOwner(fanProfileId) && isUserIdConsistentOnCreate(fanProfileId);
+      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    /**
+     * @description A read-only collection of all published content. This data is
+     *              managed by backend functions, not directly by clients.
+     * @path        /published_content/{contentId}
+     * @allow       (get, list) Any user, signed in or not, can read and list content.
+     * @deny        (create, update, delete) All client-side write operations are forbidden.
+     * @principle   Structural segregation for secure and performant public queries (QAP).
+     */
+    match /published_content/{contentId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description A user's private collection for all their content, including
+     *              drafts, pending, and published copies.
+     * @path        /users/{userId}/my_content/{contentId}
+     * @allow       (create) User 'user123' creating a new draft in their own
+     *              /users/user123/my_content/ subcollection.
+     * @deny        (list) User 'user456' trying to list content from
+     *              /users/user123/my_content/.
+     * @principle   Restricts access to a user's own data tree using path-based
+     *              security and validates denormalized ownership fields.
+     */
+    match /users/{userId}/my_content/{contentId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isContentOwnerIdConsistentOnCreate(userId);
+      allow update: if isExistingOwner(userId) && isContentOwnerIdImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Global collection of content tags. Publicly readable by all
+     *              users, but not writable from the client.
+     * @path        /tags/{tagId}
+     * @allow       (get, list) Any anonymous user can read and list tags.
+     * @deny        (create, update, delete) All client-side write operations are forbidden.
+     * @principle   Secures globally shared, read-only data.
+     */
+    match /tags/{tagId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description A user's private notification feed. Only the user can access
+     *              their own notifications.
+     * @path        /users/{userId}/notifications/{notificationId}
+     * @allow       (list) User 'user123' listing their own notifications at
+     *              /users/user123/notifications.
+     * @deny        (get) User 'user456' trying to read a specific notification
+     *              from /users/user123/notifications/{notificationId}.
+     * @principle   Restricts access to a user's own data tree.
+     */
+    match /users/{userId}/notifications/{notificationId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isUserIdConsistentOnCreate(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Stores logs of administrative actions. Access is restricted
+     *              to Super Admins for both reading and writing.
+     * @path        /audit_events/{eventId}
+     * @allow       (get, list) A Super Admin reading the audit log.
+     * @deny        (get, list, create) Any regular user trying to access this collection.
+     * @principle   Role-Based Access Control (RBAC) for highly sensitive data.
+     */
+    match /audit_events/{eventId} {
+      allow get: if isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() && resource != null;
+      allow delete: if isSuperAdmin() && resource != null;
+    }
+
+    /**
+     * @description A lookup collection to identify Super Admins. This collection
+     *              is not directly accessible by any client for security.
+     * @path        /roles_super_admin/{superAdminId}
+     * @allow       (all) No client operations are ever permitted.
+     * @principle   Data used for rules logic should never be client-accessible.
+     *              It is only used internally by rules via `exists()`.
+     */
+    match /roles_super_admin/{superAdminId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
