@@ -4,35 +4,26 @@ import { format } from 'date-fns';
 import type { Post } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { MotionDiv } from './motion-div';
 
 interface ContentCardProps {
   post: Post;
   className?: string;
 }
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
 export function ContentCard({ post, className }: ContentCardProps) {
   return (
-    <MotionDiv variants={cardVariants} >
       <Link href={`/content/${post.id}`} className="group block">
         <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/30", className)}>
           {post.image_url && (
               <div className="overflow-hidden">
-                  <MotionDiv whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
                     <Image
                         src={post.image_url}
                         alt={post.title}
                         width={600}
                         height={400}
                         data-ai-hint={post.image_hint}
-                        className="aspect-[3/2] w-full object-cover"
+                        className="aspect-[3/2] w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                  </MotionDiv>
               </div>
           )}
           <CardHeader>
@@ -49,6 +40,5 @@ export function ContentCard({ post, className }: ContentCardProps) {
           </CardFooter>
         </Card>
       </Link>
-    </MotionDiv>
   );
 }

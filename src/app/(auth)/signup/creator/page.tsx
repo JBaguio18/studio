@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
+import { useAuth, useFirestore } from "@/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc } from "firebase/firestore";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   fullName: z.string().min(1, { message: "Full name is required." }),
@@ -29,6 +35,11 @@ const formSchema = z.object({
 });
 
 export default function CreatorSignupPage() {
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,13 +49,50 @@ export default function CreatorSignupPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // TODO: Implement actual signup logic
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      const userRef = doc(firestore, "users", user.uid);
+      setDocumentNonBlocking(userRef, {
+        id: user.uid,
+        email: values.email,
+        role: "creator",
+        status: "active",
+        createdAt: new Date().toISOString(),
+      }, { merge: true });
+
+      const profileRef = doc(firestore, "creator_profiles", user.uid);
+      setDocumentNonBlocking(profileRef, {
+        id: user.uid,
+        userId: user.uid,
+        username: values.email.split('@')[0], // a default username
+        displayName: values.fullName,
+        profilePhotoUrl: `https://picsum.photos/seed/${user.uid}/80/80`,
+        isVerified: false,
+        createdAt: new Date().toISOString(),
+      }, { merge: true });
+
+      toast({
+        title: "Account Created!",
+        description: "Welcome to PLXYGROUND. You will be redirected.",
+      });
+
+      router.push('/dashboard');
+
+    } catch (error: any) {
+      console.error("Signup Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error.message || "Could not create account.",
+      });
+    }
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm border-primary/20 shadow-lg shadow-primary/10">
         <CardHeader className="text-center">
           <Logo className="mx-auto mb-4"/>

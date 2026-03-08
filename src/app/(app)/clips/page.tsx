@@ -1,7 +1,6 @@
 import { ContentCard } from '@/components/content-card';
 import { PageHeader } from '@/components/page-header';
 import { getPosts } from '@/lib/mock-data';
-import { MotionDiv } from '@/components/motion-div';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlusCircle, Upload } from 'lucide-react';
@@ -31,10 +30,7 @@ export default async function ClipsPage() {
         </Button>
       </div>
 
-      <MotionDiv
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+      <div
         className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3"
       >
         {posts.map((post) => (
@@ -52,7 +48,7 @@ export default async function ClipsPage() {
              </Button>
            </div>
         )}
-      </MotionDiv>
+      </div>
     </>
   );
 }

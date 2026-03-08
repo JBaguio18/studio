@@ -22,13 +22,31 @@ import {
   User,
   Settings,
   LogOut,
+  Loader,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useEffect } from 'react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/login');
+    }
+  }, [isUserLoading, user, router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -38,6 +56,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/profile', label: 'Profile', icon: User },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
+
+  if (isUserLoading || !user) {
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader className="h-12 w-12 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -65,11 +91,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarFooter className="mt-auto">
             <SidebarMenu>
                <SidebarMenuItem>
-                 <SidebarMenuButton asChild>
-                   <Link href="/">
+                 <SidebarMenuButton onClick={handleLogout}>
                      <LogOut />
                      <span>Logout</span>
-                   </Link>
                  </SidebarMenuButton>
                </SidebarMenuItem>
              </SidebarMenu>
@@ -82,8 +106,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-4 ml-auto">
                 <Button variant="outline">Go Live</Button>
                 <Avatar>
-                    <AvatarImage src="https://picsum.photos/seed/avatar/40/40" />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
             </div>
         </header>

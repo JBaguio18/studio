@@ -10,11 +10,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)'],
-        mono: ['var(--font-geist-mono)'],
-        body: ['var(--font-geist-sans)'],
-        headline: ['var(--font-geist-sans)'],
-        code: ['var(--font-geist-mono)'],
+        sans: ['sans-serif'],
+        mono: ['monospace'],
+        body: ['sans-serif'],
+        headline: ['sans-serif'],
+        code: ['monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
