@@ -3,49 +3,56 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Logo } from "@/components/logo";
 import { User, Building, Heart } from "lucide-react";
 import Link from "next/link";
+import { MotionDiv } from "@/components/motion-div";
 
 export default function SignupChoicePage() {
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md border-primary/20 shadow-lg shadow-primary/10">
       <CardHeader className="text-center">
         <Logo className="mx-auto mb-4"/>
         <CardTitle>Join PLXYGROUND</CardTitle>
         <CardDescription>Choose your account type to get started.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Button asChild size="lg" className="h-auto py-4">
-          <Link href="/signup/creator">
-            <div className="flex items-center gap-4">
-              <User className="h-6 w-6"/>
-              <div className="text-left">
-                <p className="font-semibold">I'm a Creator</p>
-                <p className="text-sm font-normal text-primary-foreground/80">Share content and build your community.</p>
+        <MotionDiv whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+          <Button asChild size="lg" className="h-auto w-full py-4">
+            <Link href="/signup/creator">
+              <div className="flex w-full items-center gap-4">
+                <User className="h-6 w-6"/>
+                <div className="text-left">
+                  <p className="font-semibold">I'm a Creator</p>
+                  <p className="text-sm font-normal text-primary-foreground/80">Share content and build your community.</p>
+                </div>
               </div>
-            </div>
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="secondary" className="h-auto py-4">
-           <Link href="/signup/business">
-            <div className="flex items-center gap-4">
-              <Building className="h-6 w-6"/>
-              <div className="text-left">
-                <p className="font-semibold">I'm a Business</p>
-                <p className="text-sm font-normal text-secondary-foreground/80">Promote your brand and partner with creators.</p>
+            </Link>
+          </Button>
+        </MotionDiv>
+        <MotionDiv whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+          <Button asChild size="lg" variant="secondary" className="h-auto w-full py-4">
+            <Link href="/signup/business">
+              <div className="flex w-full items-center gap-4">
+                <Building className="h-6 w-6"/>
+                <div className="text-left">
+                  <p className="font-semibold">I'm a Business</p>
+                  <p className="text-sm font-normal text-secondary-foreground/80">Promote your brand and partner with creators.</p>
+                </div>
               </div>
-            </div>
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="secondary" className="h-auto py-4">
-           <Link href="/signup/fan">
-            <div className="flex items-center gap-4">
-              <Heart className="h-6 w-6"/>
-              <div className="text-left">
-                <p className="font-semibold">I'm a Fan</p>
-                <p className="text-sm font-normal text-secondary-foreground/80">Follow creators and discover content.</p>
+            </Link>
+          </Button>
+        </MotionDiv>
+        <MotionDiv whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+          <Button asChild size="lg" variant="secondary" className="h-auto w-full py-4">
+            <Link href="/signup/fan">
+              <div className="flex w-full items-center gap-4">
+                <Heart className="h-6 w-6"/>
+                <div className="text-left">
+                  <p className="font-semibold">I'm a Fan</p>
+                  <p className="text-sm font-normal text-secondary-foreground/80">Follow creators and discover content.</p>
+                </div>
               </div>
-            </div>
-          </Link>
-        </Button>
+            </Link>
+          </Button>
+        </MotionDiv>
       </CardContent>
     </Card>
   );

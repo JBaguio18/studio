@@ -13,8 +13,8 @@ export default async function ContentPage({ params }: { params: { id: string } }
   return (
     <article className="container mx-auto max-w-3xl px-4 py-8">
       <header className="mb-8">
-        <p className="mb-2 font-bold uppercase text-accent">{post.creator_name}</p>
-        <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary md:text-5xl">
+        <p className="mb-2 font-bold uppercase text-primary">{post.creator_name}</p>
+        <h1 className="font-headline text-4xl font-extrabold tracking-tight md:text-5xl">
           {post.title}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
@@ -23,20 +23,20 @@ export default async function ContentPage({ params }: { params: { id: string } }
       </header>
       
       {post.image_url && (
-        <div className="relative mb-8 w-full">
+        <div className="relative mb-8 w-full overflow-hidden rounded-lg">
           <Image
             src={post.image_url}
             alt={post.title}
             width={1200}
             height={800}
             data-ai-hint={post.image_hint}
-            className="aspect-[3/2] w-full rounded-lg border object-cover"
+            className="w-full rounded-lg border object-cover transition-transform duration-500 ease-in-out hover:scale-105"
             priority
           />
         </div>
       )}
 
-      <div className="prose prose-lg max-w-none text-foreground prose-headings:text-primary prose-a:text-accent hover:prose-a:underline">
+      <div className="prose prose-lg max-w-none text-foreground prose-headings:text-primary prose-a:text-primary hover:prose-a:underline">
         <p>{post.content_body}</p>
       </div>
     </article>

@@ -1,6 +1,17 @@
 import { ContentCard } from '@/components/content-card';
 import { PageHeader } from '@/components/page-header';
 import { getPosts } from '@/lib/mock-data';
+import { MotionDiv } from '@/components/motion-div';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 export default async function Home() {
   const posts = await getPosts();
@@ -11,7 +22,12 @@ export default async function Home() {
         title="PLXYGROUND"
         subtitle="Sports Creator Content"
       />
-      <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <MotionDiv
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3"
+      >
         {posts.map((post) => (
           <ContentCard key={post.id} post={post} />
         ))}
@@ -20,7 +36,7 @@ export default async function Home() {
              No content available yet. Check back soon!
            </div>
         )}
-      </div>
+      </MotionDiv>
     </div>
   );
 }

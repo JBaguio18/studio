@@ -42,7 +42,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm border-primary/20 shadow-lg shadow-primary/10">
       <CardHeader className="text-center">
         <Logo className="mx-auto mb-4"/>
         <CardTitle>Welcome Back</CardTitle>
@@ -71,7 +71,7 @@ export default function LoginPage() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>Password</FormLabel>
-                    <Link href="#" className="text-sm font-medium text-accent hover:underline">
+                    <Link href="#" className="text-sm font-medium text-primary hover:underline">
                         Forgot Password?
                     </Link>
                   </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link href="/signup" className="font-medium text-accent hover:underline">
+            <Link href="/signup" className="font-medium text-primary hover:underline">
                 Sign Up
             </Link>
         </p>
