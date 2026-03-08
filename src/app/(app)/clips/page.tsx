@@ -5,16 +5,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlusCircle, Upload } from 'lucide-react';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
 export default async function ClipsPage() {
   const posts = await getPosts();
 

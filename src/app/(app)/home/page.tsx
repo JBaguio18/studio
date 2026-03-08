@@ -2,16 +2,6 @@ import { ContentCard } from '@/components/content-card';
 import { PageHeader } from '@/components/page-header';
 import { getPosts } from '@/lib/mock-data';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
 export default async function HomePage() {
   const posts = await getPosts();
 
