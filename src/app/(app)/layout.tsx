@@ -102,9 +102,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <SidebarTrigger className="md:hidden" />
-            <div className="flex items-center gap-4 ml-auto">
+        <header className="flex h-14 items-center gap-4 border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <SidebarTrigger />
+            <div className="ml-auto flex items-center gap-4">
                 <Button variant="outline">Go Live</Button>
                 <Avatar>
                     <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} />
