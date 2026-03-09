@@ -44,7 +44,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
-            <div className="bg-glossy relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background shadow-2xl">
+            <div className="relative flex min-h-screen w-full flex-col bg-background">
               <SiteHeader />
               <main className="flex-1">{children}</main>
             </div>
