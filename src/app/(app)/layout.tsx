@@ -19,7 +19,7 @@ import {
 import { useAuth, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -52,8 +52,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/home', label: 'Home Feed', icon: Home },
     { href: '/clips', label: 'My Clips', icon: Video },
     { href: '/upload', label: 'Upload', icon: Upload },
-    { href: '/profile', label: 'Profile', icon: User },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: 'profile', label: 'Profile', icon: User },
+    { href: 'settings', label: 'Settings', icon: Settings },
   ];
 
   if (isUserLoading || !user) {
@@ -75,6 +75,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col p-0">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <div className="flex h-full flex-col gap-2 bg-sidebar text-sidebar-foreground">
                 <div className="flex h-14 items-center border-b border-sidebar-border px-4">
                     <Logo className="text-sidebar-primary" />
