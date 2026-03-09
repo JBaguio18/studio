@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar side="left">
         <SidebarContent>
           <SidebarHeader>
             <Logo className="text-sidebar-primary" />
