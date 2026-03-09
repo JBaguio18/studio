@@ -15,9 +15,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { useState, useEffect } from 'react';
+import { Slider } from '@/components/ui/slider';
 
 export default function SettingsPage() {
   const { setTheme, theme } = useTheme();
+  // State for font size
+  const [fontSize, setFontSize] = useState(100);
+  // State for high contrast
+  const [isHighContrast, setIsHighContrast] = useState(false);
+  // State for reduce motion
+  const [isReduceMotion, setIsReduceMotion] = useState(false);
+
+  // Effect to apply font size to the root element
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}%`;
+  }, [fontSize]);
+
+  // Effect to toggle high-contrast class on the root element
+  useEffect(() => {
+    document.documentElement.classList.toggle('high-contrast', isHighContrast);
+  }, [isHighContrast]);
+
+  // Effect to toggle reduce-motion class on the root element
+  useEffect(() => {
+    document.documentElement.classList.toggle('reduce-motion', isReduceMotion);
+  }, [isReduceMotion]);
 
   return (
     <>
@@ -80,6 +103,23 @@ export default function SettingsPage() {
                   }}
                 />
               </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="high-contrast-mode" className="text-base">
+                    High Contrast Mode
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Improve legibility with a higher contrast theme.
+                  </p>
+                </div>
+                <Switch
+                  id="high-contrast-mode"
+                  checked={isHighContrast}
+                  onCheckedChange={setIsHighContrast}
+                />
+              </div>
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="reduce-motion" className="text-base">
@@ -89,7 +129,31 @@ export default function SettingsPage() {
                     Prefer less animation and motion in the app.
                   </p>
                 </div>
-                <Switch id="reduce-motion" />
+                <Switch
+                  id="reduce-motion"
+                  checked={isReduceMotion}
+                  onCheckedChange={setIsReduceMotion}
+                />
+              </div>
+
+              <div className="rounded-lg border p-4">
+                <div className="space-y-0.5 mb-4">
+                  <Label className="text-base">Font Size</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust the text size for comfortable reading.
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 pt-2">
+                  <span className="text-sm font-medium">Aa</span>
+                  <Slider
+                    defaultValue={[fontSize]}
+                    min={80}
+                    max={140}
+                    step={10}
+                    onValueChange={(value) => setFontSize(value[0])}
+                  />
+                  <span className="text-2xl font-medium">Aa</span>
+                </div>
               </div>
             </CardContent>
           </Card>
