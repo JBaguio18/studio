@@ -14,17 +14,16 @@
  *
  * Key Security Decisions:
  * - Structural Segregation: Content is split into two collections: a public,
- *   read-only `/published_content` collection for discovery, and a private
+ *   read-only `/published_content` for discovery, and a private
  *   `/users/{userId}/my_content` subcollection for user-specific drafts and
  *   management. This makes list queries secure and performant.
  * - Denormalization for Authorization: Profile collections use the user's
  *   authentication UID as the document ID for direct access. Content documents
  *   contain a denormalized `ownerUserId` to link back to the owner without
  *   requiring a `get()` call.
- * - User Listing Disabled: To protect user privacy and prevent data scraping,
- *   listing the top-level `/users` collection is explicitly forbidden.
- * - Self-Creation: Users are permitted to create their own user document and
- *   associated profiles upon sign-up, enabling a smooth onboarding process.
+ * - Data Validation: In addition to authorization, rules validate incoming
+ *   data to enforce application logic, such as preventing users from forging
+ *   timestamps or bypassing the content moderation queue.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -34,64 +33,40 @@ service cloud.firestore {
     // Helper Functions
     //-------------------------------------------------------------------------//
 
-    /**
-     * isSignedIn
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * isOwner
-     * Checks if the authenticated user's UID matches the provided userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * isExistingOwner
-     * Checks if a document exists and if the authenticated user is the owner.
-     * CRITICAL for all update and delete operations to prevent modifying
-     * non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+    function incomingData() {
+      return request.resource.data;
     }
 
-    /**
-     * isUserIdConsistentOnCreate
-     * On create, validates that a `userId` field in the new document's data
-     * matches the owner's UID from the path. This enforces relational integrity.
-     */
-    function isUserIdConsistentOnCreate(userId) {
-      return request.resource.data.userId == userId;
+    function existingData() {
+      return resource.data;
     }
 
-    /**
-     * isUserIdImmutable
-     * On update, ensures the `userId` field linking a document to its owner
-     * cannot be changed. This prevents re-assigning ownership of a resource.
-     */
-    function isUserIdImmutable() {
-      return request.resource.data.userId == resource.data.userId;
+    // Validates that key IDs match the authenticated user on creation.
+    function isNewOwner(userId) {
+      return isOwner(userId) && incomingData().id == userId;
     }
 
-    /**
-     * isContentOwnerIdConsistentOnCreate
-     * On create, validates the denormalized `ownerUserId` matches the user's UID.
-     */
-    function isContentOwnerIdConsistentOnCreate(userId) {
-      return request.resource.data.ownerUserId == userId;
+    // Validates timestamps and immutability of key fields on update.
+    function isConsistentOnUpdate(userId) {
+      return isOwner(userId)
+             && incomingData().id == existingData().id
+             && incomingData().createdAt == existingData().createdAt
+             && incomingData().updatedAt == request.time;
     }
-
-    /**
-     * isContentOwnerIdImmutable
-     * On update, ensures the denormalized `ownerUserId` is not changed.
-     */
-    function isContentOwnerIdImmutable() {
-      return request.resource.data.ownerUserId == resource.data.ownerUserId;
+    
+    function isSelfOwnedProfileUpdate() {
+        return isOwner(existingData().userId)
+            && incomingData().userId == existingData().userId
+            && incomingData().isVerified == existingData().isVerified // Users can't verify themselves
+            && incomingData().updatedAt == request.time;
     }
 
 
@@ -99,147 +74,73 @@ service cloud.firestore {
     // Collection Rules
     //-------------------------------------------------------------------------//
 
-    /**
-     * @description Core user account data. Users can create, read, and update
-     *              their own user document but cannot see or list others.
-     * @path        /users/{userId}
-     * @allow       (create) A newly signed-up user with UID 'user123' creating their
-     *              own document at /users/user123.
-     * @deny        (get) User 'user123' trying to read /users/user456.
-     * @deny        (list) Any user trying to list all documents in /users.
-     * @principle   Enforces self-creation and strict data ownership.
-     */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow list: if false; // Prevent user enumeration
+      allow create: if isNewOwner(userId) && incomingData().createdAt == request.time;
+      allow update: if isConsistentOnUpdate(userId);
+      allow delete: if isOwner(userId);
     }
 
-    /**
-     * @description Publicly visible profiles for creators. Anyone can view these
-     *              profiles, but only the owner can create, edit, or delete them.
-     * @path        /creator_profiles/{creatorProfileId}
-     * @allow       (get) Any anonymous user reading /creator_profiles/user123.
-     * @allow       (create) User 'user123' creating their profile document at
-     *              /creator_profiles/user123, with `userId: 'user123'` in the data.
-     * @deny        (update) User 'user456' trying to update the profile at
-     *              /creator_profiles/user123.
-     * @principle   Public Read with Owner-Only Writes. Validates relational
-     *              integrity via the `userId` field.
-     */
     match /creator_profiles/{creatorProfileId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isOwner(creatorProfileId) && isUserIdConsistentOnCreate(creatorProfileId);
-      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow create: if isOwner(creatorProfileId) && incomingData().userId == creatorProfileId && incomingData().createdAt == request.time;
+      allow update: if isSelfOwnedProfileUpdate();
+      allow delete: if isOwner(existingData().userId);
     }
 
-    /**
-     * @description Publicly visible profiles for businesses. Same rules as creator
-     *              profiles: public read, owner-only writes.
-     * @path        /business_profiles/{businessProfileId}
-     * @allow       (get) Any anonymous user reading /business_profiles/user123.
-     * @allow       (create) User 'user123' creating their profile document at
-     *              /business_profiles/user123, with `userId: 'user123'` in the data.
-     * @deny        (update) User 'user456' trying to update the profile at
-     *              /business_profiles/user123.
-     * @principle   Public Read with Owner-Only Writes. Validates relational
-     *              integrity via the `userId` field.
-     */
     match /business_profiles/{businessProfileId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isOwner(businessProfileId) && isUserIdConsistentOnCreate(businessProfileId);
-      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow create: if isOwner(businessProfileId) && incomingData().userId == businessProfileId && incomingData().createdAt == request.time;
+      allow update: if isSelfOwnedProfileUpdate();
+      allow delete: if isOwner(existingData().userId);
     }
 
-    /**
-     * @description Private profiles for fan users. Only the owner can read or write
-     *              their own profile. Listing is disabled.
-     * @path        /fan_profiles/{fanProfileId}
-     * @allow       (get) User 'user123' reading their own profile at /fan_profiles/user123.
-     * @deny        (get) User 'user456' trying to read /fan_profiles/user123.
-     * @deny        (list) Any user trying to list all fan profiles.
-     * @principle   Strict ownership for private data.
-     */
     match /fan_profiles/{fanProfileId} {
       allow get: if isOwner(fanProfileId);
       allow list: if false;
-      allow create: if isOwner(fanProfileId) && isUserIdConsistentOnCreate(fanProfileId);
-      allow update: if isExistingOwner(resource.data.userId) && isUserIdImmutable();
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow create: if isOwner(fanProfileId) && incomingData().userId == fanProfileId && incomingData().createdAt == request.time;
+      allow update: if isOwner(existingData().userId) && incomingData().updatedAt == request.time;
+      allow delete: if isOwner(existingData().userId);
     }
 
-    /**
-     * @description A read-only collection of all published content. This data is
-     *              managed by backend functions, not directly by clients.
-     * @path        /published_content/{contentId}
-     * @allow       (get, list) Any user, signed in or not, can read and list content.
-     * @deny        (create, update, delete) All client-side write operations are forbidden.
-     * @principle   Structural segregation for secure and performant public queries (QAP).
-     */
     match /published_content/{contentId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      // This collection is a public, read-only mirror managed by a backend process.
+      allow get, list: if true;
+      allow write: if false;
     }
 
-    /**
-     * @description A user's private collection for all their content, including
-     *              drafts and pending items. Can only be managed by the owner.
-     * @path        /users/{userId}/my_content/{contentId}
-     * @allow       (list) User 'user123' listing their own content.
-     * @deny        (list) User 'user456' trying to list content from /users/user123/my_content/.
-     * @principle   Restricts access to a user's own data tree using path-based security.
-     */
     match /users/{userId}/my_content/{contentId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && isContentOwnerIdConsistentOnCreate(userId);
-      allow update: if isOwner(userId) && resource != null && isContentOwnerIdImmutable();
-      allow delete: if isOwner(userId) && resource != null;
+      allow get, list, delete: if isOwner(userId);
+      
+      // On create, user must be owner, set timestamps correctly, and cannot set status to 'published'
+      allow create: if isOwner(userId)
+                    && incomingData().ownerUserId == userId
+                    && incomingData().createdAt == request.time
+                    && !(incomingData().status in ['published', 'rejected']);
+
+      // On update, user must be owner, timestamps must be correct, and certain transitions are disallowed.
+      allow update: if isOwner(userId)
+                    && incomingData().ownerUserId == existingData().ownerUserId
+                    && incomingData().createdAt == existingData().createdAt
+                    && incomingData().updatedAt == request.time
+                    // Prevent users from publishing or rejecting their own content.
+                    && !(incomingData().status in ['published', 'rejected'])
+                    // Prevent editing content that is already live (a copy exists in /published_content)
+                    && existingData().status != 'published';
     }
 
-    /**
-     * @description Global collection of content tags. Publicly readable by all
-     *              users, but not writable from the client.
-     * @path        /tags/{tagId}
-     * @allow       (get, list) Any anonymous user can read and list tags.
-     * @deny        (create, update, delete) All client-side write operations are forbidden.
-     * @principle   Secures globally shared, read-only data.
-     */
     match /tags/{tagId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      // Tags are public, read-only data managed by a backend process.
+      allow get, list: if true;
+      allow write: if false;
     }
 
-    /**
-     * @description A user's private notification feed. Only the user can access
-     *              their own notifications.
-     * @path        /users/{userId}/notifications/{notificationId}
-     * @allow       (list) User 'user123' listing their own notifications at
-     *              /users/user123/notifications.
-     * @deny        (get) User 'user456' trying to read a specific notification
-     *              from /users/user123/notifications/{notificationId}.
-     * @principle   Restricts access to a user's own data tree.
-     */
     match /users/{userId}/notifications/{notificationId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && isUserIdConsistentOnCreate(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow get, list, update, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && incomingData().userId == userId;
     }
   }
 }
-
-    
