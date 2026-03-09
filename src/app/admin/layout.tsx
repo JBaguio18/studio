@@ -10,6 +10,7 @@ import {
   Loader,
   PanelLeft,
   Home,
+  FileWarning,
 } from 'lucide-react';
 
 import { useAuth } from '@/firebase';
@@ -50,6 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid },
+    { href: '/admin/moderation', label: 'Moderation', icon: FileWarning },
     { href: '/dashboard', label: 'Back to App', icon: Home },
   ];
 
@@ -116,3 +118,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
+
+    

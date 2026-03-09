@@ -204,21 +204,19 @@ service cloud.firestore {
 
     /**
      * @description A user's private collection for all their content, including
-     *              drafts, pending, and published copies.
+     *              drafts and pending items. Can be managed by the owner or a Super Admin.
      * @path        /users/{userId}/my_content/{contentId}
-     * @allow       (create) User 'user123' creating a new draft in their own
-     *              /users/user123/my_content/ subcollection.
-     * @deny        (list) User 'user456' trying to list content from
-     *              /users/user123/my_content/.
-     * @principle   Restricts access to a user's own data tree using path-based
-     *              security and validates denormalized ownership fields.
+     * @allow       (list) User 'user123' listing their own content, or an admin listing any user's content.
+     * @deny        (list) User 'user456' trying to list content from /users/user123/my_content/.
+     * @principle   Restricts access to a user's own data tree using path-based security,
+     *              but grants full access to Super Admins for moderation.
      */
     match /users/{userId}/my_content/{contentId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow get: if isOwner(userId) || isSuperAdmin();
+      allow list: if isOwner(userId) || isSuperAdmin();
       allow create: if isOwner(userId) && isContentOwnerIdConsistentOnCreate(userId);
-      allow update: if isExistingOwner(userId) && isContentOwnerIdImmutable();
-      allow delete: if isExistingOwner(userId);
+      allow update: if (isOwner(userId) || isSuperAdmin()) && resource != null && isContentOwnerIdImmutable();
+      allow delete: if (isOwner(userId) || isSuperAdmin()) && resource != null;
     }
 
     /**
@@ -288,3 +286,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
