@@ -6,7 +6,7 @@ import { doc, DocumentData } from 'firebase/firestore';
 interface UserProfile extends DocumentData {
   id: string;
   email: string;
-  role: 'creator' | 'business' | 'fan' | 'admin' | 'super_admin';
+  role: 'creator' | 'business' | 'fan';
   status: string;
   createdAt: string;
 }
@@ -30,3 +30,5 @@ export function useUserProfile() {
     error,
   };
 }
+
+    

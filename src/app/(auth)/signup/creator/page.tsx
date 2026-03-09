@@ -57,7 +57,7 @@ export default function CreatorSignupPage() {
       const userDocData = {
         id: user.uid,
         email: values.email,
-        role: "super_admin",
+        role: "creator",
         status: "active",
         createdAt: new Date().toISOString(),
       };
@@ -72,20 +72,16 @@ export default function CreatorSignupPage() {
         username: values.email.split('@')[0], // a default username
         displayName: values.fullName,
         profilePhotoUrl: `https://picsum.photos/seed/${user.uid}/80/80`,
-        isVerified: true,
+        isVerified: false,
         createdAt: new Date().toISOString(),
       }, { merge: true });
 
-      // This is needed for the isSuperAdmin() security rule check
-      const superAdminRef = doc(firestore, "roles_super_admin", user.uid);
-      setDocumentNonBlocking(superAdminRef, userDocData, { merge: true });
-
       toast({
-        title: "Admin Account Created!",
-        description: "Welcome to PLXYGROUND. You will be redirected to the Admin Dashboard.",
+        title: "Creator Account Created!",
+        description: "Welcome to PLXYGROUND. You will be redirected to the dashboard.",
       });
 
-      router.push('/admin/dashboard');
+      router.push('/dashboard');
 
     } catch (error: any) {
       console.error("Signup Error:", error);
@@ -177,3 +173,5 @@ export default function CreatorSignupPage() {
     </div>
   );
 }
+
+    

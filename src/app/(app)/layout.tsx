@@ -14,7 +14,6 @@ import {
   LogOut,
   Loader,
   PanelLeft,
-  Shield,
 } from 'lucide-react';
 
 import { useAuth } from '@/firebase';
@@ -57,10 +56,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/profile', label: 'Profile', icon: User },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
-
-  if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
-    menuItems.push({ href: '/admin/dashboard', label: 'Admin', icon: Shield });
-  }
 
   if (isLoading || !user) {
     return (
@@ -125,3 +120,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+    
