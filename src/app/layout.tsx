@@ -5,6 +5,7 @@ import { SiteHeader } from '@/components/site-header';
 import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Inter, Oswald } from 'next/font/google';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,13 +37,20 @@ export default function RootLayout({
           oswald.variable
         )}
       >
-        <FirebaseClientProvider>
-          <div className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background shadow-2xl">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
-        </FirebaseClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <FirebaseClientProvider>
+            <div className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background shadow-2xl">
+              <SiteHeader />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </FirebaseClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
