@@ -162,4 +162,7 @@
   .text-balance {
     text-wrap: balance;
   }
+  .bg-glossy {
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.1), transparent);
+  }
 }
