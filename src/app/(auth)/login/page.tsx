@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +49,16 @@ export default function LoginPage() {
       description: "Please wait a moment.",
     });
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      if (!userCredential.user.emailVerified) {
+        await signOut(auth);
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "Please verify your email address before signing in.",
+        });
+        return;
+      }
       // On success, the auth listener in layout handles redirection.
     } catch (error: any) {
       console.error("Login Error:", error);

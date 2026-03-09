@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
 import { useAuth, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
@@ -54,12 +54,14 @@ export default function BusinessSignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
+      await sendEmailVerification(user);
+
       const userRef = doc(firestore, "users", user.uid);
       setDocumentNonBlocking(userRef, {
         id: user.uid,
         email: values.email,
         role: "business",
-        status: "active",
+        status: "pending_verification",
         createdAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -76,10 +78,10 @@ export default function BusinessSignupPage() {
 
        toast({
         title: "Account Created!",
-        description: "Welcome to PLXYGROUND. You will be redirected.",
+        description: "Please check your email to verify your account.",
       });
 
-      router.push('/dashboard');
+      router.push('/signup/verify-email');
 
     } catch (error: any) {
       console.error("Signup Error:", error);

@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
 import { useAuth, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
@@ -54,11 +54,13 @@ export default function CreatorSignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
+      await sendEmailVerification(user);
+
       const userDocData = {
         id: user.uid,
         email: values.email,
         role: "creator",
-        status: "active",
+        status: "pending_verification",
         createdAt: new Date().toISOString(),
       };
 
@@ -77,11 +79,11 @@ export default function CreatorSignupPage() {
       }, { merge: true });
 
       toast({
-        title: "Creator Account Created!",
-        description: "Welcome to PLXYGROUND. You will be redirected to the dashboard.",
+        title: "Account Created!",
+        description: "Please check your email to verify your account.",
       });
 
-      router.push('/dashboard');
+      router.push('/signup/verify-email');
 
     } catch (error: any) {
       console.error("Signup Error:", error);
@@ -173,5 +175,3 @@ export default function CreatorSignupPage() {
     </div>
   );
 }
-
-    
