@@ -5,16 +5,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import {
-  Home,
   LayoutGrid,
-  Video,
-  Upload,
-  User,
-  Settings,
   LogOut,
   Loader,
   PanelLeft,
-  Shield,
+  Home,
 } from 'lucide-react';
 
 import { useAuth } from '@/firebase';
@@ -26,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, isLoading } = useUserProfile();
@@ -34,10 +29,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace('/login');
+    if (!isLoading) {
+      if (!user) {
+        router.replace('/login');
+      } else if (!userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
+        router.replace('/dashboard');
+      }
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user, userProfile, router]);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -50,19 +49,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
-    { href: '/home', label: 'Home Feed', icon: Home },
-    { href: '/clips', label: 'My Clips', icon: Video },
-    { href: '/upload', label: 'Upload', icon: Upload },
-    { href: '/profile', label: 'Profile', icon: User },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid },
+    { href: '/dashboard', label: 'Back to App', icon: Home },
   ];
 
-  if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
-    menuItems.push({ href: '/admin/dashboard', label: 'Admin', icon: Shield });
-  }
-
-  if (isLoading || !user) {
+  if (isLoading || !user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader className="h-12 w-12 animate-spin text-primary" />
@@ -81,7 +72,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col p-0">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
             <div className="flex h-full flex-col gap-2 bg-sidebar text-sidebar-foreground">
                 <div className="flex h-14 items-center border-b border-sidebar-border px-4">
                     <Logo className="text-sidebar-primary" />
@@ -111,8 +102,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SheetContent>
         </Sheet>
-         <div className="flex w-full items-center justify-end gap-4">
-          <Button variant="outline">Go Live</Button>
+         <div className="flex w-full items-center justify-between">
+           <h1 className="text-xl font-semibold">Admin Panel</h1>
           <Avatar>
             <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} />
             <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>

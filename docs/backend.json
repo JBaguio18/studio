@@ -18,9 +18,13 @@
         "role": {
           "type": "string",
           "description": "The primary role of the user within the platform.",
-          "items": {
-            "type": "string"
-          }
+          "enum": [
+            "creator",
+            "business",
+            "fan",
+            "admin",
+            "super_admin"
+          ]
         },
         "status": {
           "type": "string",
