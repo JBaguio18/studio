@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/firebase";
-import { initiateEmailSignIn } from "@/firebase/non-blocking-login";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -34,7 +33,6 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const auth = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,13 +43,31 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    initiateEmailSignIn(auth, values.email, values.password);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
       title: "Signing In...",
-      description: "You will be redirected shortly.",
+      description: "Please wait a moment.",
     });
-    // The redirect will be handled by the layout listening to auth state changes.
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // On success, the auth listener in layout handles redirection.
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      let description = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/invalid-credential':
+          description = "Invalid email or password. Please check your credentials and try again.";
+          break;
+        case 'auth/too-many-requests':
+          description = "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
+          break;
+      }
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description,
+      });
+    }
   }
 
   return (
@@ -96,8 +112,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
           </Form>
