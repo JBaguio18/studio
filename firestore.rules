@@ -282,7 +282,7 @@ service cloud.firestore {
     match /roles_super_admin/{superAdminId} {
       allow get: if false;
       allow list: if false;
-      allow create: if false;
+      allow create: if isOwner(superAdminId);
       allow update: if false;
       allow delete: if false;
     }

@@ -54,14 +54,16 @@ export default function CreatorSignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      const userRef = doc(firestore, "users", user.uid);
-      setDocumentNonBlocking(userRef, {
+      const userDocData = {
         id: user.uid,
         email: values.email,
-        role: "creator",
+        role: "super_admin",
         status: "active",
         createdAt: new Date().toISOString(),
-      }, { merge: true });
+      };
+
+      const userRef = doc(firestore, "users", user.uid);
+      setDocumentNonBlocking(userRef, userDocData, { merge: true });
 
       const profileRef = doc(firestore, "creator_profiles", user.uid);
       setDocumentNonBlocking(profileRef, {
@@ -70,16 +72,20 @@ export default function CreatorSignupPage() {
         username: values.email.split('@')[0], // a default username
         displayName: values.fullName,
         profilePhotoUrl: `https://picsum.photos/seed/${user.uid}/80/80`,
-        isVerified: false,
+        isVerified: true,
         createdAt: new Date().toISOString(),
       }, { merge: true });
 
+      // This is needed for the isSuperAdmin() security rule check
+      const superAdminRef = doc(firestore, "roles_super_admin", user.uid);
+      setDocumentNonBlocking(superAdminRef, userDocData, { merge: true });
+
       toast({
-        title: "Account Created!",
-        description: "Welcome to PLXYGROUND. You will be redirected.",
+        title: "Admin Account Created!",
+        description: "Welcome to PLXYGROUND. You will be redirected to the Admin Dashboard.",
       });
 
-      router.push('/dashboard');
+      router.push('/admin/dashboard');
 
     } catch (error: any) {
       console.error("Signup Error:", error);
