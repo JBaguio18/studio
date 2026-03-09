@@ -83,10 +83,22 @@ export default function BusinessSignupPage() {
 
     } catch (error: any) {
       console.error("Signup Error:", error);
+      let description = "Could not create account. Please try again.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = "This email address is already in use. Please use a different email.";
+          break;
+        case 'auth/weak-password':
+          description = "The password is too weak. Please choose a stronger password.";
+          break;
+        case 'auth/invalid-email':
+            description = "The email address is not valid. Please check and try again.";
+            break;
+      }
       toast({
         variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error.message || "Could not create account.",
+        title: "Signup Failed",
+        description,
       });
     }
   }
@@ -141,8 +153,8 @@ export default function BusinessSignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Sign Up
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </form>
           </Form>
