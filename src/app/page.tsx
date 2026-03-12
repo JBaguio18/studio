@@ -12,7 +12,7 @@ export default async function Home() {
         subtitle="Sports Creator Content"
       />
       <div
-        className="mt-8 grid grid-cols-2 gap-5"
+        className="mt-8 grid grid-cols-2 gap-5 animate-in fade-in-0 slide-in-from-bottom-4 duration-700"
       >
         {posts.map((post) => (
           <ContentCard key={post.id} post={post} />
