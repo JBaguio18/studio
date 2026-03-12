@@ -40,6 +40,14 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserData(request.auth.uid).role in ['admin', 'super_admin'];
+    }
 
     function incomingData() {
       return request.resource.data;
@@ -113,23 +121,20 @@ service cloud.firestore {
     }
 
     match /users/{userId}/my_content/{contentId} {
-      allow get, list, delete: if isOwner(userId);
-      
-      // On create, user must be owner, set timestamps correctly, and cannot set status to 'published'
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId);
+
+      // On create, user must be owner and set status to 'pending moderation'.
       allow create: if isOwner(userId)
                     && incomingData().ownerUserId == userId
                     && incomingData().createdAt == request.time
-                    && !(incomingData().status in ['published', 'rejected']);
-
-      // On update, user must be owner, timestamps must be correct, and certain transitions are disallowed.
-      allow update: if isOwner(userId)
-                    && incomingData().ownerUserId == existingData().ownerUserId
-                    && incomingData().createdAt == existingData().createdAt
-                    && incomingData().updatedAt == request.time
-                    // Prevent users from publishing or rejecting their own content.
-                    && !(incomingData().status in ['published', 'rejected'])
-                    // Prevent editing content that is already live (a copy exists in /published_content)
-                    && existingData().status != 'published';
+                    && incomingData().status == 'pending moderation';
+      
+      // On update, only admins can change status from 'pending' to 'published' or 'rejected'.
+      allow update: if isAdmin()
+                    && existingData().status == 'pending moderation'
+                    && incomingData().status in ['published', 'rejected']
+                    && incomingData().updatedAt == request.time;
     }
 
     match /tags/{tagId} {

@@ -59,6 +59,7 @@ export default function CreatorSignupPage() {
       const userDocData = {
         id: user.uid,
         email: values.email,
+        displayName: values.fullName,
         role: "creator",
         status: "pending_verification",
         createdAt: new Date().toISOString(),

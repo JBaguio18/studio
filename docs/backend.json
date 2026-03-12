@@ -15,6 +15,10 @@
           "description": "The user's email address, used for sign-in and communication.",
           "format": "email"
         },
+        "displayName": {
+          "type": "string",
+          "description": "The user's public display name, denormalized for easy access."
+        },
         "role": {
           "type": "string",
           "description": "The primary role of the user within the platform.",
@@ -49,6 +53,7 @@
       "required": [
         "id",
         "email",
+        "displayName",
         "role",
         "status",
         "createdAt"

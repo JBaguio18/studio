@@ -60,6 +60,7 @@ export default function BusinessSignupPage() {
       setDocumentNonBlocking(userRef, {
         id: user.uid,
         email: values.email,
+        displayName: values.businessName,
         role: "business",
         status: "pending_verification",
         createdAt: new Date().toISOString(),

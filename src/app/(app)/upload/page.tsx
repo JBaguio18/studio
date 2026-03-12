@@ -1,51 +1,213 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
+
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, CheckCircle, File as FileIcon } from 'lucide-react';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useFirestore } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const formSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters.'),
+  description: z.string().min(10, 'Description must be at least 10 characters.'),
+});
 
 export default function UploadPage() {
+  const { user, userProfile } = useUserProfile();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+    },
+  });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 500 * 1024 * 1024) { // 500MB
+        setFileError('File size cannot exceed 500MB.');
+        setFile(null);
+      } else {
+        setFile(selectedFile);
+        setFileError(null);
+      }
+    }
+  };
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!file) {
+      setFileError('A video file is required.');
+      return;
+    }
+    if (!user || !userProfile || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to upload content.',
+      });
+      return;
+    }
+
+    try {
+      const contentCollection = collection(
+        firestore,
+        'users',
+        user.uid,
+        'my_content'
+      );
+
+      // In a real app, you would upload the file to Firebase Storage first
+      // and get the URL. For now, we'll use a placeholder.
+      // const fileUrl = await uploadFile(file); 
+
+      await addDoc(contentCollection, {
+        ownerUserId: user.uid,
+        ownerDisplayName: userProfile.displayName,
+        ownerProfilePhotoUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
+        title: values.title,
+        body: values.description,
+        contentType: 'video',
+        status: 'pending moderation',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        // mediaUrl: fileUrl,
+      });
+
+      toast({
+        title: 'Upload Successful!',
+        description: 'Your clip has been submitted for review.',
+      });
+
+      router.push('/clips');
+
+    } catch (error: any) {
+      console.error('Error submitting content:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Submission Failed',
+        description: error.message || 'There was an error submitting your clip.',
+      });
+    }
+  }
+
   return (
     <>
-      <PageHeader title="Upload New Clip" subtitle="Share your latest highlight with the world." />
+      <PageHeader
+        title="Upload New Clip"
+        subtitle="Share your latest highlight with the world."
+      />
       <div className="mt-8 flex justify-center">
         <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle>Clip Details</CardTitle>
-            <CardDescription>
-              Fill out the information below to upload your new clip.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid gap-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" placeholder="My Awesome Play" />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="A short description of your clip..." />
-            </div>
-            <div className="grid gap-2">
-              <Label>Video File</Label>
-              <div className="flex items-center justify-center w-full">
-                <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-accent">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                        <p className="text-xs text-muted-foreground">MP4, MOV, or WEBM (MAX. 500MB)</p>
-                    </div>
-                    <input id="dropzone-file" type="file" className="hidden" />
-                </label>
-              </div> 
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="ml-auto">Upload Clip</Button>
-          </CardFooter>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardHeader>
+                <CardTitle>Clip Details</CardTitle>
+                <CardDescription>
+                  Fill out the information below to upload your new clip. It will be reviewed by an admin before publishing.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="My Awesome Play" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="A short description of your clip..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid gap-2">
+                  <Label>Video File</Label>
+                  <div className="flex w-full items-center justify-center">
+                    <label
+                      htmlFor="dropzone-file"
+                      className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card hover:bg-accent"
+                    >
+                      {file ? (
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                            <CheckCircle className="mb-3 h-10 w-10 text-green-500"/>
+                            <p className="font-semibold">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <span className="mt-2 text-sm text-primary">Click or drag to replace</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <UploadCloud className="mb-3 h-10 w-10 text-muted-foreground" />
+                          <p className="mb-2 text-sm text-muted-foreground">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            MP4, MOV, or WEBM (MAX. 500MB)
+                          </p>
+                        </div>
+                      )}
+                      <input id="dropzone-file" type="file" className="hidden" accept="video/mp4,video/quicktime,video/webm" onChange={handleFileChange} />
+                    </label>
+                  </div>
+                  {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="ml-auto" disabled={form.formState.isSubmitting}>
+                   {form.formState.isSubmitting ? 'Submitting...' : 'Submit for Review'}
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
       </div>
     </>
