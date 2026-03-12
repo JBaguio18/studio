@@ -21,7 +21,9 @@
           "enum": [
             "creator",
             "business",
-            "fan"
+            "fan",
+            "admin",
+            "super_admin"
           ]
         },
         "status": {
@@ -502,5 +504,3 @@
     "reasoning": "The proposed Firestore structure prioritizes **Authorization Independence** and **QAP (Query as Permission)** compliance by employing a dual-path strategy for content and path-based ownership for user-specific data. \n\n**Authorization Independence** is achieved through extensive denormalization. For instance, `Content` documents, whether in the public `/published_content` collection or the user-specific `/users/{userId}/my_content` subcollection, will contain direct authorization fields like `ownerUserId` (the Firebase Authentication UID of the content creator/business owner) and `ownerProfileId`. This eliminates the need for expensive and complex `get()` calls in security rules to check parent document ownership or profile status, allowing for atomic operations and simplified rule logic. Similarly, all profile types (Creator, Business, Fan) use the user's UID as their document ID, directly linking the profile to `request.auth.uid` without requiring additional lookups.\n\n**QAPs (Rules are not Filters)** are primarily addressed by **Structural Segregation**. Instead of a single `/content` collection that would require complex `list` query filters based on `status` or `ownerId` (violating QAP), content is separated into two distinct security postures:\n1.  **/published_content/{contentId}**: This top-level collection exclusively stores content that has a `status` of 'published'. Any user (authenticated or unauthenticated) can perform `list` operations on this collection, and rules simply enforce the `published` status invariant. This satisfies the QAP for public feeds and discovery.\n2.  **/users/{userId}/my_content/{contentId}**: This subcollection is for all content (drafts, pending, published copies) owned by a specific user. Access to this path is strictly controlled by `request.auth.uid == userId`, making `list` operations for 'My Content' secure and QAP-compliant. When a user publishes content from this subcollection, a Cloud Function mirrors or copies the necessary public fields to the `/published_content` collection. This ensures that users can list and manage their private content without exposing it to others unless explicitly published.\n\nUser profiles (`creator_profiles`, `business_profiles`, `fan_profiles`) are stored as top-level collections with the user's UID as the document ID, allowing for direct `get` access and secure listing (e.g., `creator_profiles` can be publicly listed, `fan_profiles` are restricted). User-specific data like `notifications` are housed in subcollections under `/users/{userId}/notifications/{notificationId}`, ensuring private, path-based ownership and QAP-compliant listing.\n\n**Explicit State Modeling** is leveraged for `User.status` and `Content.status` fields, providing clear, single points of truth for entity states, simplifying rule logic and application flow."
   }
 }
-
-    

@@ -14,6 +14,7 @@ import {
   LogOut,
   Loader,
   PanelLeft,
+  ShieldCheck,
 } from 'lucide-react';
 
 import { useAuth } from '@/firebase';
@@ -97,6 +98,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         </Link>
                     ))}
                 </nav>
+                
+                {userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin') && (
+                    <>
+                        <div className="my-2 border-t border-sidebar-border" />
+                        <nav className="grid gap-1 p-2 font-medium">
+                            <a
+                                href="https://admin.plxyground.app"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={handleLinkClick}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            >
+                                <ShieldCheck className="h-4 w-4" />
+                                Admin Dashboard
+                            </a>
+                        </nav>
+                    </>
+                )}
+
                 <div className="mt-auto p-2">
                      <Button variant="ghost" className="w-full justify-start gap-3 rounded-lg px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
                         <LogOut className="h-4 w-4" />
