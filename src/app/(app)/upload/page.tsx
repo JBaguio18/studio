@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -43,7 +44,7 @@ const formSchema = z.object({
 });
 
 export default function UploadPage() {
-  const { user, userProfile } = useUserProfile();
+  const { user, userProfile, isLoading: isUserLoading } = useUserProfile();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -130,6 +131,8 @@ export default function UploadPage() {
     }
   }
 
+  const isLoading = form.formState.isSubmitting || isUserLoading;
+
   return (
     <>
       <PageHeader
@@ -147,125 +150,129 @@ export default function UploadPage() {
                   will be reviewed by an admin before publishing.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-6">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="My Awesome Play" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="A short description of your content..."
-                          {...field}
+              <fieldset disabled={isLoading} className="group">
+                <CardContent className="grid gap-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="My Awesome Play" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="A short description of your content..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Content Type</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex items-center space-x-4"
+                          >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="video" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Video
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="image" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Image
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid gap-2">
+                    <Label>Media File</Label>
+                    <div className="flex w-full items-center justify-center">
+                      <label
+                        htmlFor="dropzone-file"
+                        className={cn(
+                          'flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card transition-colors',
+                          'group-disabled:cursor-not-allowed group-disabled:bg-muted/50',
+                          'hover:bg-accent'
+                        )}
+                      >
+                        {file ? (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                            <CheckCircle className="mb-3 h-10 w-10 text-green-500" />
+                            <p className="font-semibold">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                            <span className="mt-2 text-sm text-primary">
+                              Click or drag to replace
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="mb-3 h-10 w-10 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              <span className="font-semibold">
+                                Click to upload
+                              </span>{' '}
+                              or drag and drop
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Video or Image (MAX. 500MB)
+                            </p>
+                          </div>
+                        )}
+                        <input
+                          id="dropzone-file"
+                          type="file"
+                          className="hidden"
+                          accept="video/*,image/*"
+                          onChange={handleFileChange}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contentType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Content Type</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex items-center space-x-4"
-                        >
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="video" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Video</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="image" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Image</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-2">
-                  <Label>Media File</Label>
-                  <div className="flex w-full items-center justify-center">
-                    <label
-                      htmlFor="dropzone-file"
-                      className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card hover:bg-accent"
-                    >
-                      {file ? (
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                          <CheckCircle className="mb-3 h-10 w-10 text-green-500" />
-                          <p className="font-semibold">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          <span className="mt-2 text-sm text-primary">
-                            Click or drag to replace
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <UploadCloud className="mb-3 h-10 w-10 text-muted-foreground" />
-                          <p className="mb-2 text-sm text-muted-foreground">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>{' '}
-                            or drag and drop
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Video or Image (MAX. 500MB)
-                          </p>
-                        </div>
-                      )}
-                      <input
-                        id="dropzone-file"
-                        type="file"
-                        className="hidden"
-                        accept="video/*,image/*"
-                        onChange={handleFileChange}
-                      />
-                    </label>
+                      </label>
+                    </div>
+                    {fileError && (
+                      <p className="text-sm font-medium text-destructive">
+                        {fileError}
+                      </p>
+                    )}
                   </div>
-                  {fileError && (
-                    <p className="text-sm font-medium text-destructive">
-                      {fileError}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  type="submit"
-                  className="ml-auto"
-                  disabled={form.formState.isSubmitting}
-                >
-                  {form.formState.isSubmitting
-                    ? 'Submitting...'
-                    : 'Submit for Review'}
-                </Button>
-              </CardFooter>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" className="ml-auto">
+                    {isLoading ? 'Loading...' : 'Submit for Review'}
+                  </Button>
+                </CardFooter>
+              </fieldset>
             </form>
           </Form>
         </Card>
