@@ -4,11 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { useState, useEffect } from "react";
 
-const APP_ROUTES = ['/dashboard', '/clips', '/home', '/profile', '/settings', '/upload'];
+const APP_ROUTES = ['/dashboard', '/clips', '/home', '/profile', '/settings', '/upload', '/admin'];
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // If the current path is an app route, don't render the site header
   if (APP_ROUTES.some(route => pathname.startsWith(route))) {
@@ -20,7 +26,7 @@ export function SiteHeader() {
       className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <div className="w-full bg-primary py-1 text-center text-xs font-medium text-primary-foreground">
-        App Preview • Editorial Content Platform
+        {isClient ? 'App Preview • Editorial Content Platform' : 'Web Preview • Editorial Content Platform'}
       </div>
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
         <Logo />
