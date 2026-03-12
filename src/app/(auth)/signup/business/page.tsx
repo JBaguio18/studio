@@ -18,10 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { doc } from "firebase/firestore";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -56,26 +55,50 @@ export default function BusinessSignupPage() {
 
       await sendEmailVerification(user);
 
+      const photoUrl = `https://picsum.photos/seed/${user.uid}/80/80`;
+
       const userRef = doc(firestore, "users", user.uid);
-      setDocumentNonBlocking(userRef, {
+      const userDocData = {
         id: user.uid,
         email: values.email,
         displayName: values.businessName,
+        profilePhotoUrl: photoUrl,
         role: "business",
         status: "pending_verification",
         createdAt: new Date().toISOString(),
-      }, { merge: true });
+      };
+      setDoc(userRef, userDocData, { merge: true }).catch(error => {
+          errorEmitter.emit(
+              'permission-error',
+              new FirestorePermissionError({
+                  path: userRef.path,
+                  operation: 'create',
+                  requestResourceData: userDocData,
+              })
+          )
+      });
 
       const profileRef = doc(firestore, "business_profiles", user.uid);
-      setDocumentNonBlocking(profileRef, {
+      const profileDocData = {
         id: user.uid,
         userId: user.uid,
         username: values.email.split('@')[0], // a default username
         businessName: values.businessName,
-        profilePhotoUrl: `https://picsum.photos/seed/${user.uid}/80/80`,
+        profilePhotoUrl: photoUrl,
         isVerified: false,
         createdAt: new Date().toISOString(),
-      }, { merge: true });
+      };
+      setDoc(profileRef, profileDocData, { merge: true }).catch(error => {
+          errorEmitter.emit(
+              'permission-error',
+              new FirestorePermissionError({
+                  path: profileRef.path,
+                  operation: 'create',
+                  requestResourceData: profileDocData,
+              })
+          )
+      });
+
 
        toast({
         title: "Account Created!",

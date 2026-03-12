@@ -19,6 +19,11 @@
           "type": "string",
           "description": "The user's public display name, denormalized for easy access."
         },
+        "profilePhotoUrl": {
+          "type": "string",
+          "description": "URL to the user's profile photo, denormalized for easy access.",
+          "format": "uri"
+        },
         "role": {
           "type": "string",
           "description": "The primary role of the user within the platform.",

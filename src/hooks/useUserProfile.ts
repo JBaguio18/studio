@@ -7,6 +7,7 @@ interface UserProfile extends DocumentData {
   id: string;
   email: string;
   displayName: string;
+  profilePhotoUrl?: string;
   role: 'creator' | 'business' | 'fan' | 'admin' | 'super_admin';
   status: string;
   createdAt: string;
@@ -31,5 +32,3 @@ export function useUserProfile() {
     error,
   };
 }
-
-    
