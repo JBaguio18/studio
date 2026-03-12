@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -20,9 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud, CheckCircle } from 'lucide-react';
+import { UploadCloud, CheckCircle, Sparkles, Loader } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import {
+  useFirestore,
+  errorEmitter,
+  FirestorePermissionError,
+} from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import {
   Form,
@@ -34,10 +38,16 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import {
+  aiContentOptimizer,
+  type AiContentOptimizerOutput,
+} from '@/ai/flows/ai-content-optimizer-flow';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters.'),
   contentType: z.enum(['video', 'image'], {
     required_error: 'You need to select a content type.',
   }),
@@ -50,6 +60,9 @@ export default function UploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [aiSuggestions, setAiSuggestions] =
+    useState<AiContentOptimizerOutput | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,6 +86,53 @@ export default function UploadPage() {
       }
     }
   };
+
+  async function handleOptimizeContent() {
+    const { title, description } = form.getValues();
+    if (!title && !description) {
+      toast({
+        variant: 'destructive',
+        title: 'Nothing to optimize!',
+        description: 'Please enter a title and/or description first.',
+      });
+      return;
+    }
+
+    setIsOptimizing(true);
+    setAiSuggestions(null);
+    try {
+      const result = await aiContentOptimizer({
+        originalTitle: title,
+        originalDescription: description,
+      });
+      setAiSuggestions(result);
+    } catch (error) {
+      console.error('AI Optimization Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'AI Optimization Failed',
+        description: 'Could not generate suggestions. Please try again.',
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  }
+
+  function applyAiSuggestions() {
+    if (aiSuggestions) {
+      form.setValue('title', aiSuggestions.optimizedTitle, {
+        shouldValidate: true,
+      });
+      form.setValue('description', aiSuggestions.optimizedDescription, {
+        shouldValidate: true,
+      });
+      setAiSuggestions(null); // Clear suggestions after applying
+      toast({
+        title: 'Suggestions Applied!',
+        description: 'The title and description have been updated.',
+      });
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!file) {
@@ -103,13 +163,13 @@ export default function UploadPage() {
       ownerUserId: user.uid,
       ownerDisplayName: userProfile.displayName,
       ownerProfilePhotoUrl:
-        user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
+        userProfile.profilePhotoUrl || `https://picsum.photos/seed/${user.uid}/40/40`,
       title: values.title,
       body: values.description,
       contentType: values.contentType,
       status: 'pending moderation' as const,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
       // mediaUrl: fileUrl,
     };
 
@@ -128,8 +188,6 @@ export default function UploadPage() {
           requestResourceData: newContentData,
         });
         errorEmitter.emit('permission-error', permissionError);
-        // The form's isSubmitting state will automatically be reset by react-hook-form on promise rejection.
-        // No need to show a toast here, the global error handler will show the developer overlay.
       });
   }
 
@@ -183,6 +241,62 @@ export default function UploadPage() {
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleOptimizeContent}
+                      disabled={isOptimizing}
+                      className="group-disabled:pointer-events-none"
+                    >
+                      {isOptimizing ? (
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="mr-2 h-4 w-4" />
+                      )}
+                      {isOptimizing ? 'Optimizing...' : 'Optimize with AI'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Use AI to improve your title and description for better
+                      engagement.
+                    </p>
+                  </div>
+
+                  {aiSuggestions && (
+                    <Card className="bg-accent/50 border-primary/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          AI Suggestions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-semibold">
+                            Suggested Title
+                          </Label>
+                          <p className="rounded-md border bg-background p-3 text-sm">
+                            {aiSuggestions.optimizedTitle}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold">
+                            Suggested Description
+                          </Label>
+                          <p className="rounded-md border bg-background p-3 text-sm">
+                            {aiSuggestions.optimizedDescription}
+                          </p>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button type="button" onClick={applyAiSuggestions}>
+                          Apply Suggestions
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  )}
+
                   <FormField
                     control={form.control}
                     name="contentType"
@@ -271,7 +385,7 @@ export default function UploadPage() {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="ml-auto">
-                    {isLoading ? 'Loading...' : 'Submit for Review'}
+                    {isLoading ? 'Submitting...' : 'Submit for Review'}
                   </Button>
                 </CardFooter>
               </fieldset>
