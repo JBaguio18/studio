@@ -32,7 +32,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-muted font-body antialiased',
+          'min-h-screen bg-background font-body antialiased',
           inter.variable,
           oswald.variable
         )}
@@ -44,7 +44,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
-            <div className="relative flex min-h-screen w-full flex-col bg-background">
+            <div className="relative flex min-h-screen w-full flex-col bg-background bg-glossy">
               <SiteHeader />
               <main className="flex-1">{children}</main>
             </div>
