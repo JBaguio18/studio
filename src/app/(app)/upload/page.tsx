@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { UploadCloud, CheckCircle } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { useFirestore } from '@/firebase';
+import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import {
   Form,
@@ -88,47 +88,49 @@ export default function UploadPage() {
       return;
     }
 
-    try {
-      const contentCollection = collection(
-        firestore,
-        'users',
-        user.uid,
-        'my_content'
-      );
+    const contentCollection = collection(
+      firestore,
+      'users',
+      user.uid,
+      'my_content'
+    );
 
-      // In a real app, you would upload the file to Firebase Storage first
-      // and get the URL. For now, we'll use a placeholder.
-      // const fileUrl = await uploadFile(file);
+    // In a real app, you would upload the file to Firebase Storage first
+    // and get the URL. For now, we'll use a placeholder.
+    // const fileUrl = await uploadFile(file);
 
-      await addDoc(contentCollection, {
-        ownerUserId: user.uid,
-        ownerDisplayName: userProfile.displayName,
-        ownerProfilePhotoUrl:
-          user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
-        title: values.title,
-        body: values.description,
-        contentType: values.contentType,
-        status: 'pending moderation',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        // mediaUrl: fileUrl,
+    const newContentData = {
+      ownerUserId: user.uid,
+      ownerDisplayName: userProfile.displayName,
+      ownerProfilePhotoUrl:
+        user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
+      title: values.title,
+      body: values.description,
+      contentType: values.contentType,
+      status: 'pending moderation' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      // mediaUrl: fileUrl,
+    };
+
+    addDoc(contentCollection, newContentData)
+      .then(() => {
+        toast({
+          title: 'Upload Successful!',
+          description: 'Your content has been submitted for review.',
+        });
+        router.push('/clips');
+      })
+      .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+          path: `users/${user.uid}/my_content`,
+          operation: 'create',
+          requestResourceData: newContentData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // The form's isSubmitting state will automatically be reset by react-hook-form on promise rejection.
+        // No need to show a toast here, the global error handler will show the developer overlay.
       });
-
-      toast({
-        title: 'Upload Successful!',
-        description: 'Your content has been submitted for review.',
-      });
-
-      router.push('/clips');
-    } catch (error: any) {
-      console.error('Error submitting content:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Submission Failed',
-        description:
-          error.message || 'There was an error submitting your content.',
-      });
-    }
   }
 
   const isLoading = form.formState.isSubmitting || isUserLoading;

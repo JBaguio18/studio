@@ -12,6 +12,8 @@ import {
   useCollection,
   useFirestore,
   useMemoFirebase,
+  errorEmitter, 
+  FirestorePermissionError
 } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
 import {
@@ -63,32 +65,34 @@ export default function ModerationPage() {
     error,
   } = useCollection<ContentForModeration>(contentToModerateQuery);
 
-  const handleUpdateStatus = async (
+  const handleUpdateStatus = (
     item: ContentForModeration,
     newStatus: 'published' | 'rejected'
   ) => {
-    try {
-      const docRef = doc(
-        firestore,
-        'users',
-        item.ownerUserId,
-        'my_content',
-        item.id
-      );
-      await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
-      toast({
-        title: `Content ${newStatus}`,
-        description: `"${item.title}" has been ${newStatus}.`,
+    const docRef = doc(
+      firestore,
+      'users',
+      item.ownerUserId,
+      'my_content',
+      item.id
+    );
+    const updatedData = { status: newStatus, updatedAt: new Date().toISOString() };
+
+    updateDoc(docRef, updatedData)
+      .then(() => {
+        toast({
+          title: `Content ${newStatus}`,
+          description: `"${item.title}" has been ${newStatus}.`,
+        });
+      })
+      .catch((e) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updatedData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
       });
-    } catch (e: any) {
-      console.error('Failed to update content status:', e);
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description:
-          e.message || 'Could not update the content status. Please try again.',
-      });
-    }
   };
 
   const renderContent = () => {
