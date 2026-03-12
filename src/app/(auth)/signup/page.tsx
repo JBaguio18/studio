@@ -14,25 +14,21 @@ export default function SignupChoicePage() {
           <CardDescription>Choose your account type to get started.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-            <Button asChild size="lg" className="h-auto w-full py-4">
+            <Button asChild size="lg" className="h-auto w-full justify-start gap-4 py-4 text-left">
               <Link href="/signup/creator">
-                <div className="flex w-full items-center gap-4">
-                  <User className="h-6 w-6"/>
-                  <div className="text-left">
-                    <p className="font-semibold">I'm a Creator / Athlete</p>
-                    <p className="text-sm font-normal text-primary-foreground/80">Share your journey and connect with your audience.</p>
-                  </div>
+                <User className="h-6 w-6 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">I'm a Creator / Athlete</p>
+                  <p className="text-sm font-normal text-primary-foreground/80">Share your journey and connect with your audience.</p>
                 </div>
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary" className="h-auto w-full py-4">
+            <Button asChild size="lg" variant="secondary" className="h-auto w-full justify-start gap-4 py-4 text-left">
               <Link href="/signup/business">
-                <div className="flex w-full items-center gap-4">
-                  <Building className="h-6 w-6"/>
-                  <div className="text-left">
-                    <p className="font-semibold">I'm a Business / Admin / Coach</p>
-                    <p className="text-sm font-normal text-secondary-foreground/80">Manage your brand, team, or business.</p>
-                  </div>
+                <Building className="h-6 w-6 flex-shrink-0"/>
+                <div>
+                  <p className="font-semibold">I'm a Business / Admin / Coach</p>
+                  <p className="text-sm font-normal text-secondary-foreground/80">Manage your brand, team, or business.</p>
                 </div>
               </Link>
             </Button>
