@@ -27,7 +27,7 @@ export default function DashboardPage() {
     <>
       <PageHeader title="Dashboard" subtitle="Welcome back, Creator!" />
       <div 
-        className="mt-8 grid grid-cols-2 gap-5"
+        className="mt-8 grid grid-cols-2 gap-5 animate-in fade-in-0 slide-in-from-bottom-4 duration-700"
       >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -71,7 +71,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 animate-in fade-in-0 slide-in-from-bottom-8 duration-900">
         <DashboardChart />
         <Card>
             <CardHeader>
