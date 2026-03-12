@@ -65,7 +65,7 @@ export default function CreatorSignupPage() {
         profilePhotoUrl: photoUrl,
         role: "creator",
         status: "pending_verification",
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       };
       setDoc(userRef, userDocData, { merge: true }).catch(error => {
           errorEmitter.emit(
@@ -87,7 +87,7 @@ export default function CreatorSignupPage() {
         displayName: values.fullName,
         profilePhotoUrl: photoUrl,
         isVerified: false,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       };
        setDoc(profileRef, profileDocData, { merge: true }).catch(error => {
           errorEmitter.emit(

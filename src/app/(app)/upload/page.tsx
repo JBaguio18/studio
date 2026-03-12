@@ -108,8 +108,8 @@ export default function UploadPage() {
       body: values.description,
       contentType: values.contentType,
       status: 'pending moderation' as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       // mediaUrl: fileUrl,
     };
 

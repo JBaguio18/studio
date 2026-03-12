@@ -4,6 +4,7 @@ import {
   collectionGroup,
   doc,
   query,
+  serverTimestamp,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -76,7 +77,7 @@ export default function ModerationPage() {
       'my_content',
       item.id
     );
-    const updatedData = { status: newStatus, updatedAt: new Date().toISOString() };
+    const updatedData = { status: newStatus, updatedAt: serverTimestamp() };
 
     updateDoc(docRef, updatedData)
       .then(() => {
@@ -89,7 +90,7 @@ export default function ModerationPage() {
         const permissionError = new FirestorePermissionError({
           path: docRef.path,
           operation: 'update',
-          requestResourceData: updatedData,
+          requestResourceData: { status: newStatus }, // Note: serverTimestamp is not serializable for the error
         });
         errorEmitter.emit('permission-error', permissionError);
       });
@@ -183,5 +184,3 @@ export default function ModerationPage() {
     </>
   );
 }
-
-    

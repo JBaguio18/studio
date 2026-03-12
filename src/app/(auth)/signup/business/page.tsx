@@ -65,7 +65,7 @@ export default function BusinessSignupPage() {
         profilePhotoUrl: photoUrl,
         role: "business",
         status: "pending_verification",
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       };
       setDoc(userRef, userDocData, { merge: true }).catch(error => {
           errorEmitter.emit(
@@ -86,7 +86,7 @@ export default function BusinessSignupPage() {
         businessName: values.businessName,
         profilePhotoUrl: photoUrl,
         isVerified: false,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       };
       setDoc(profileRef, profileDocData, { merge: true }).catch(error => {
           errorEmitter.emit(

@@ -57,6 +57,16 @@ service cloud.firestore {
       return resource.data;
     }
 
+    // Validates if a client-provided timestamp for a new document is recent.
+    // This allows for a 5-minute clock skew to prevent errors while stopping users from setting arbitrary dates.
+    function isRecentCreate() {
+      let clientTimestamp = incomingData().createdAt;
+      return clientTimestamp is timestamp &&
+             request.time.toMillis() - clientTimestamp.toMillis() > -60000 && // Not more than 1 min in the future
+             request.time.toMillis() - clientTimestamp.toMillis() < 300000;   // Not more than 5 mins in the past
+    }
+
+
     // Validates that key IDs match the authenticated user on creation.
     function isNewOwner(userId) {
       return isOwner(userId) && incomingData().id == userId;
@@ -85,7 +95,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false; // Prevent user enumeration
-      allow create: if isNewOwner(userId) && incomingData().createdAt == request.time;
+      allow create: if isNewOwner(userId) && isRecentCreate();
       allow update: if isConsistentOnUpdate(userId);
       allow delete: if isOwner(userId);
     }
@@ -93,7 +103,7 @@ service cloud.firestore {
     match /creator_profiles/{creatorProfileId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isOwner(creatorProfileId) && incomingData().userId == creatorProfileId && incomingData().createdAt == request.time;
+      allow create: if isOwner(creatorProfileId) && incomingData().userId == creatorProfileId && isRecentCreate();
       allow update: if isSelfOwnedProfileUpdate();
       allow delete: if isOwner(existingData().userId);
     }
@@ -101,7 +111,7 @@ service cloud.firestore {
     match /business_profiles/{businessProfileId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isOwner(businessProfileId) && incomingData().userId == businessProfileId && incomingData().createdAt == request.time;
+      allow create: if isOwner(businessProfileId) && incomingData().userId == businessProfileId && isRecentCreate();
       allow update: if isSelfOwnedProfileUpdate();
       allow delete: if isOwner(existingData().userId);
     }
@@ -109,7 +119,7 @@ service cloud.firestore {
     match /fan_profiles/{fanProfileId} {
       allow get: if isOwner(fanProfileId);
       allow list: if false;
-      allow create: if isOwner(fanProfileId) && incomingData().userId == fanProfileId && incomingData().createdAt == request.time;
+      allow create: if isOwner(fanProfileId) && incomingData().userId == fanProfileId && isRecentCreate();
       allow update: if isOwner(existingData().userId) && incomingData().updatedAt == request.time;
       allow delete: if isOwner(existingData().userId);
     }
@@ -127,7 +137,7 @@ service cloud.firestore {
       // On create, user must be owner and set status to 'pending moderation'.
       allow create: if isOwner(userId)
                     && incomingData().ownerUserId == userId
-                    && incomingData().createdAt == request.time
+                    && isRecentCreate()
                     && incomingData().status == 'pending moderation';
       
       // On update, only admins can change status from 'pending' to 'published' or 'rejected'.
