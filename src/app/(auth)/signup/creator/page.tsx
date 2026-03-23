@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from "@/components/logo";
 import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -65,7 +65,8 @@ export default function CreatorSignupPage() {
         profilePhotoUrl: photoUrl,
         role: "creator",
         status: "pending_verification",
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
       setDoc(userRef, userDocData, { merge: true }).catch(error => {
           errorEmitter.emit(
@@ -87,7 +88,8 @@ export default function CreatorSignupPage() {
         displayName: values.fullName,
         profilePhotoUrl: photoUrl,
         isVerified: false,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
        setDoc(profileRef, profileDocData, { merge: true }).catch(error => {
           errorEmitter.emit(
@@ -118,8 +120,8 @@ export default function CreatorSignupPage() {
           description = "The password is too weak. Please choose a stronger password.";
           break;
         case 'auth/invalid-email':
-          description = "The email address is not valid. Please check and try again.";
-          break;
+            description = "The email address is not valid. Please check and try again.";
+            break;
       }
       toast({
         variant: "destructive",
