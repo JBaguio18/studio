@@ -127,7 +127,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SheetContent>
         </Sheet>
          <div className="flex w-full items-center justify-end gap-4">
-          <Button variant="outline">Go Live</Button>
           <Avatar>
             <AvatarImage src={userProfile?.profilePhotoUrl || `https://picsum.photos/seed/${user.uid}/40/40`} />
             <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>

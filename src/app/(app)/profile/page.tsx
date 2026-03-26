@@ -56,29 +56,35 @@ export default function ProfilePage() {
     const userDocRef = doc(firestore, 'users', user.uid);
     const profileDocRef = doc(firestore, `${userProfile.role}_profiles`, user.uid);
     
-    const updateData = {
+    const userUpdateData = {
+        displayName: values.displayName,
+        updatedAt: serverTimestamp()
+    };
+    const profileUpdateData = {
       displayName: values.displayName,
       username: values.username,
       updatedAt: serverTimestamp(),
     };
 
-    try {
-      await updateDoc(userDocRef, {
-        displayName: values.displayName,
-        updatedAt: serverTimestamp()
-      });
-      await updateDoc(profileDocRef, updateData);
-      toast({ title: 'Profile Updated', description: 'Your changes have been saved.' });
-    } catch (error) {
-      console.error("Profile update error: ", error);
-       const permissionError = new FirestorePermissionError({
-          path: profileDocRef.path,
+    updateDoc(userDocRef, userUpdateData).catch(error => {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
           operation: 'update',
-          requestResourceData: updateData,
+          requestResourceData: userUpdateData,
         });
         errorEmitter.emit('permission-error', permissionError);
-      toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save changes.' });
-    }
+    });
+
+    updateDoc(profileDocRef, profileUpdateData).catch(error => {
+        const permissionError = new FirestorePermissionError({
+          path: profileDocRef.path,
+          operation: 'update',
+          requestResourceData: profileUpdateData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+
+    toast({ title: 'Profile Updated', description: 'Your changes have been saved.' });
   }
   
   const isLoading = form.formState.isSubmitting || isUserLoading;

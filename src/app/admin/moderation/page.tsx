@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  Timestamp,
 } from 'firebase/firestore';
 import { format } from 'date-fns';
 import {
@@ -45,7 +46,7 @@ type ContentForModeration = {
   ownerUserId: string;
   ownerDisplayName: string;
   status: 'draft' | 'pending moderation' | 'published' | 'rejected';
-  createdAt: string;
+  createdAt: Timestamp;
 };
 
 export default function ModerationPage() {
@@ -139,7 +140,7 @@ export default function ModerationPage() {
               <TableCell className="font-medium">{item.title}</TableCell>
               <TableCell>{item.ownerDisplayName}</TableCell>
               <TableCell>
-                {format(new Date(item.createdAt), 'MMM d, yyyy')}
+                {format(item.createdAt.toDate(), 'MMM d, yyyy')}
               </TableCell>
               <TableCell>
                 <Badge variant="secondary">{item.status}</Badge>

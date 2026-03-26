@@ -68,7 +68,7 @@ export default function BusinessSignupPage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      setDoc(userRef, userDocData, { merge: true }).catch(error => {
+      setDoc(userRef, userDocData).catch(error => {
           errorEmitter.emit(
               'permission-error',
               new FirestorePermissionError({
@@ -90,7 +90,7 @@ export default function BusinessSignupPage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      setDoc(profileRef, profileDocData, { merge: true }).catch(error => {
+      setDoc(profileRef, profileDocData).catch(error => {
           errorEmitter.emit(
               'permission-error',
               new FirestorePermissionError({

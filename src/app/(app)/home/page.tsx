@@ -15,7 +15,7 @@ export default async function HomePage() {
         className="mx-auto mt-8 flex max-w-lg flex-col items-center gap-5 animate-in fade-in-0 slide-in-from-bottom-4 duration-700"
       >
         {posts.map((post) => (
-          <ContentCard key={post.id} post={post} />
+          <ContentCard key={post.id} content={post} />
         ))}
         {posts.length === 0 && (
            <div className="col-span-full text-center text-muted-foreground">
