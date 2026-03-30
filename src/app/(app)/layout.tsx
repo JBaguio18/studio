@@ -16,6 +16,14 @@ import {
   PanelLeft,
   ShieldCheck,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 import { useAuth } from '@/firebase';
 import { cn } from '@/lib/utils';
@@ -54,8 +62,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/home', label: 'Home Feed', icon: Home },
     { href: '/clips', label: 'My Clips', icon: Video },
     { href: '/upload', label: 'Upload', icon: Upload },
-    { href: '/profile', label: 'Profile', icon: User },
-    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   if (isLoading || !user) {
@@ -103,16 +109,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <>
                         <div className="my-2 border-t border-sidebar-border" />
                         <nav className="grid gap-1 p-2 font-medium">
-                            <a
-                                href="https://admin.plxyground.app"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                href="/admin/dashboard"
                                 onClick={handleLinkClick}
-                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", pathname.startsWith('/admin') && "bg-sidebar-accent text-sidebar-accent-foreground")}
                             >
                                 <ShieldCheck className="h-4 w-4" />
-                                Admin Dashboard
-                            </a>
+                                Admin Panel
+                            </Link>
                         </nav>
                     </>
                 )}
@@ -127,10 +131,47 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SheetContent>
         </Sheet>
          <div className="flex w-full items-center justify-end gap-4">
-          <Avatar>
-            <AvatarImage src={userProfile?.profilePhotoUrl || `https://picsum.photos/seed/${user.uid}/40/40`} />
-            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-10 w-10 rounded-full"
+              >
+                <Avatar>
+                  <AvatarImage src={userProfile?.profilePhotoUrl || `https://picsum.photos/seed/${user.uid}/40/40`} />
+                  <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{userProfile?.displayName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
