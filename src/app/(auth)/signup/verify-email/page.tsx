@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export default function VerifyEmailPage() {
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center border-primary/20 shadow-lg shadow-primary/10">
+      <Card className="w-full max-w-md text-center border-primary/20 shadow-lg shadow-primary/10 animate-in fade-in-0 zoom-in-95 duration-500">
         <CardHeader>
           <Logo className="mx-auto mb-4"/>
           <CardTitle>Verify Your Email</CardTitle>

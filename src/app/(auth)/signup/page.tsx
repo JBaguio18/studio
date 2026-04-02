@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function SignupChoicePage() {
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <Card className="w-full max-w-md border-primary/20 shadow-lg shadow-primary/10">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg shadow-primary/10 animate-in fade-in-0 zoom-in-95 duration-500">
         <CardHeader className="text-center">
           <Logo className="mx-auto mb-4"/>
           <CardTitle>Join PLXYGROUND</CardTitle>

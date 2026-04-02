@@ -23,7 +23,7 @@ export function ContentCard({ content, className }: ContentCardProps) {
     const isPublished = content.status === 'published';
 
     const card = (
-        <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out", isPublished && "group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2", className)}>
+        <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out border-transparent hover:border-primary/50", isPublished && "group-hover:shadow-2xl group-hover:shadow-primary/20 group-hover:-translate-y-3", className)}>
           <div className="overflow-hidden relative">
             {content.mediaUrl ? (
                 <Image

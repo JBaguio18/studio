@@ -95,7 +95,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             href={item.href}
                             onClick={handleLinkClick}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all duration-200 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1",
                                 pathname === item.href && "bg-sidebar-accent text-sidebar-accent-foreground"
                             )}
                         >
@@ -112,7 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             <Link
                                 href="/admin/dashboard"
                                 onClick={handleLinkClick}
-                                className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", pathname.startsWith('/admin') && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all duration-200 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1", pathname.startsWith('/admin') && "bg-sidebar-accent text-sidebar-accent-foreground")}
                             >
                                 <ShieldCheck className="h-4 w-4" />
                                 Admin Panel
@@ -174,7 +174,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </DropdownMenu>
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 animate-in fade-in-50 duration-700">
         <div className="mx-auto w-full max-w-7xl">
           {children}
         </div>
