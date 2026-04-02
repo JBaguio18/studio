@@ -20,9 +20,10 @@ function getDisplayDate(content: Content) {
 }
 
 export function ContentCard({ content, className }: ContentCardProps) {
-  return (
-      <Link href={`/content/${content.id}`} className="group block w-full">
-        <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2", className)}>
+    const isPublished = content.status === 'published';
+
+    const card = (
+        <Card className={cn("flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out", isPublished && "group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2", className)}>
           <div className="overflow-hidden relative">
             {content.mediaUrl ? (
                 <Image
@@ -30,7 +31,7 @@ export function ContentCard({ content, className }: ContentCardProps) {
                     alt={content.title}
                     width={600}
                     height={750}
-                    className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className={cn("aspect-[4/5] w-full object-cover", isPublished && "transition-transform duration-300 group-hover:scale-105")}
                 />
             ) : (
               <div className="aspect-[4/5] w-full bg-muted flex flex-col items-center justify-center">
@@ -38,13 +39,13 @@ export function ContentCard({ content, className }: ContentCardProps) {
                 <p className="text-sm text-muted-foreground mt-2">No Image</p>
               </div>
             )}
-            {content.status !== 'published' && (
-                <Badge variant="secondary" className="absolute top-2 right-2">{content.status}</Badge>
+            {!isPublished && (
+                <Badge variant="secondary" className="absolute top-2 right-2 capitalize">{content.status.replace(/_/g, ' ')}</Badge>
             )}
           </div>
           <CardHeader>
             <p className="font-bold uppercase text-primary">{content.ownerDisplayName}</p>
-            <CardTitle className="font-headline text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
+            <CardTitle className={cn("font-headline text-2xl font-bold leading-snug", isPublished && "transition-colors group-hover:text-primary")}>
               {content.title}
             </CardTitle>
           </CardHeader>
@@ -57,6 +58,15 @@ export function ContentCard({ content, className }: ContentCardProps) {
             </p>
           </CardFooter>
         </Card>
-      </Link>
-  );
+    );
+
+    if (isPublished) {
+        return (
+          <Link href={`/content/${content.id}`} className="group block w-full">
+            {card}
+          </Link>
+        );
+    }
+    
+    return <div className="block w-full">{card}</div>;
 }

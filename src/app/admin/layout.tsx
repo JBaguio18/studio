@@ -107,8 +107,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
          <div className="flex w-full items-center justify-between">
            <h1 className="text-xl font-semibold">Admin Panel</h1>
           <Avatar>
-            <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} />
-            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={userProfile?.profilePhotoUrl || `https://picsum.photos/seed/${user.uid}/40/40`} />
+            <AvatarFallback>{userProfile?.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </div>
       </header>
@@ -118,5 +118,3 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
-
-    
